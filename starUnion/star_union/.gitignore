@@ -1,0 +1,8 @@
+*.py
+*.sqlite3
+workshops_photos
+events_photos
+sponsors_photos
+partnerships_photos
+users_photos
+*.pyc
