@@ -130,18 +130,18 @@ WSGI_APPLICATION = 'star_union.wsgi.application'
 DATABASES = {
     "default": {
     },
-    # "main_db": {
-    #     "NAME": "main.sqlite3",
-    #     "ENGINE": "django.db.backends.sqlite3",
-    # },
-    # "workshops_db": {
-    #     "NAME": "workshops.sqlite3",
-    #     "ENGINE": "django.db.backends.sqlite3",
-    # },
-    # "events_db": {
-    #     "NAME": "events.sqlite3",
-    #     "ENGINE": "django.db.backends.sqlite3",
-    # }
+    "main_db": {
+        "NAME": BASE_DIR / 'main_db.sqlite3',
+        "ENGINE": "django.db.backends.sqlite3",
+    },
+    "workshops_db": {
+        "NAME": BASE_DIR / "workshops.sqlite3",
+        "ENGINE": "django.db.backends.sqlite3",
+    },
+    "events_db": {
+        "NAME": BASE_DIR / "events.sqlite3",
+        "ENGINE": "django.db.backends.sqlite3",
+    }
 }
 DATABASES['default'] = dj_database_url.parse(
     'postgres://teststarunion_user:KYiGJalY8eEZqIJR672AaY6y6SjPjQu7@dpg-cnieso779t8c73brv2ug-a.oregon-postgres.render.com/teststarunion')
@@ -149,8 +149,8 @@ DATABASES['default'] = dj_database_url.parse(
 # Custom Authentication to our custom user
 AUTHENTICATION_BACKEND = []
 
-# DATABASE_ROUTERS = ['star_union.routers.mainRouter',
-#                     'star_union.routers.workShopRouter', 'star_union.routers.eventRouter']
+DATABASE_ROUTERS = ['star_union.routers.mainRouter',
+                    'star_union.routers.workShopRouter', 'star_union.routers.eventRouter']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -191,5 +191,5 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+STATIC_ROOT = ''
 STATIC_URL = 'static/'
