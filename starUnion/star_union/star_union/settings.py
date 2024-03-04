@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import dj_database_url
 from pathlib import Path
 
 
@@ -29,7 +30,7 @@ SECRET_KEY = 'django-insecure-mxep%=)azdcjg%py)%7h31&y9+$(pmbxp$v89ml7()5f#6li8j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['starunion.pythonanywhere.com', '127.0.0.1']
 
 
 # Application definition
@@ -125,27 +126,31 @@ WSGI_APPLICATION = 'star_union.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
 DATABASES = {
-    "default": {},
-    "main_db": {
-        "NAME": "main.sqlite3",
-        "ENGINE": "django.db.backends.sqlite3",
+    "default": {
     },
-    "workshops_db": {
-        "NAME": "workshops.sqlite3",
-        "ENGINE": "django.db.backends.sqlite3",
-    },
-    "events_db": {
-        "NAME": "events.sqlite3",
-        "ENGINE": "django.db.backends.sqlite3",
-    }
+    # "main_db": {
+    #     "NAME": "main.sqlite3",
+    #     "ENGINE": "django.db.backends.sqlite3",
+    # },
+    # "workshops_db": {
+    #     "NAME": "workshops.sqlite3",
+    #     "ENGINE": "django.db.backends.sqlite3",
+    # },
+    # "events_db": {
+    #     "NAME": "events.sqlite3",
+    #     "ENGINE": "django.db.backends.sqlite3",
+    # }
 }
+DATABASES['default'] = dj_database_url.parse(
+    'postgres://teststarunion_user:KYiGJalY8eEZqIJR672AaY6y6SjPjQu7@dpg-cnieso779t8c73brv2ug-a.oregon-postgres.render.com/teststarunion')
 
 # Custom Authentication to our custom user
 AUTHENTICATION_BACKEND = []
 
-DATABASE_ROUTERS = ['star_union.routers.mainRouter',
-                    'star_union.routers.workShopRouter', 'star_union.routers.eventRouter']
+# DATABASE_ROUTERS = ['star_union.routers.mainRouter',
+#                     'star_union.routers.workShopRouter', 'star_union.routers.eventRouter']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
