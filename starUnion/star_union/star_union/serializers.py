@@ -1,19 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from events import models
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
 
-class userSerializer (serializers.Serializer):
+class userLoginSerializer (serializers.Serializer):
     username = serializers.CharField()
-    id = serializers.IntegerField()
     password = serializers.CharField()
-
-    def create(self):
-        pass
-
-    def update(self):
-        pass
 
     def validate(self, attrs):
         # search for user to log him in
@@ -25,9 +19,41 @@ class userSerializer (serializers.Serializer):
             return {
                 'username': user.username,
                 'email': user.email,
-                'token': str(refresh.access_token),
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': user
             }
         else:
-            return {
-                'message': 'duck'
-            }
+            return {}
+
+
+class userUpdataDeleteSerializer (serializers.Serializer):
+
+    def create():
+        pass
+
+    def update():
+        pass
+
+# this will handle the data of the events and return all event data
+
+
+class eventSerializer (serializers.Serializer):
+    # will handle all things about the events
+    # images names any related data
+    def create():
+        pass
+
+    def update():
+        pass
+
+
+class workShopSerializer (serializers.Serializer):
+    # will handle all things about the work shops
+    # images names any related data
+
+    def create():
+        pass
+
+    def update():
+        pass

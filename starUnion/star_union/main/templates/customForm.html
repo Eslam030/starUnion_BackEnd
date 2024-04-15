@@ -1,0 +1,37 @@
+<!-- templates/admin/yourapp/modelname/change_form.html -->
+{% extends "admin/change_form.html" %}
+{% load filters %}
+{% load jazzmin %}
+{% block extrastyle %}
+    {{ block.super }}
+    <!-- Add your custom CSS here -->
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+
+    <!-- Add your custom JavaScript code here -->
+    {{ media }}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+
+    {% for fieldset in adminform  %}
+        {% for line in fieldset%}
+            {% for field in line %}
+                {% if field.field.label == 'Form' %}
+                    <!--{{ field.field.value }}-->
+                        {% with field.field.value as my_json %}
+                            {% with my_json|to_json as json_data %}
+                                <!--Customization of the form to display-->
+                                {% for key, value in json_data.items %}
+                                    {{ key }} -  {{ value }}
+                                {% endfor %}
+                            {% endwith %}
+                        {% endwith %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
+{% endblock %}

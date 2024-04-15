@@ -9,9 +9,8 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
-import dj_database_url
 from pathlib import Path
+from django.utils.crypto import get_random_string
 
 
 # JWT settings
@@ -25,6 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+
+# will activate it when deploying
+# chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+# SECRET_KEY = get_random_string(50, chars)
+
 SECRET_KEY = 'django-insecure-mxep%=)azdcjg%py)%7h31&y9+$(pmbxp$v89ml7()5f#6li8j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -52,10 +56,15 @@ INSTALLED_APPS = [
 ]
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Test",
-    "site_logo": "",
-    "site_header": "Test",
-    "site_footer": "Test",
+    "site_title": "Star Union",
+    "site_header": "Star Union",
+    "site_footer": "Star Union",
+    "site_brand": "Star Union",
+    "welcome_sign": "Welcome to Star Union Admin",
+    "copyright": "Star Union",
+    "site_logo": "assets/img/logo.png",
+    "changeform_format": "vertical_tabs",
+    "site_favicon": "assets/img/logo.png",
     "show_ui_builder": True
 }
 
@@ -66,16 +75,18 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=60),
+    'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(minutes=20),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -143,8 +154,8 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
     }
 }
-DATABASES['default'] = dj_database_url.parse(
-    'postgres://teststarunion_user:KYiGJalY8eEZqIJR672AaY6y6SjPjQu7@dpg-cnieso779t8c73brv2ug-a.oregon-postgres.render.com/teststarunion')
+# DATABASES['default'] = dj_database_url.parse(
+#     'postgres://teststarunion_user:KYiGJalY8eEZqIJR672AaY6y6SjPjQu7@dpg-cnieso779t8c73brv2ug-a.oregon-postgres.render.com/teststarunion')
 
 # Custom Authentication to our custom user
 AUTHENTICATION_BACKEND = []
@@ -182,7 +193,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Cairo'
 
 USE_I18N = True
 
@@ -191,5 +202,5 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-STATIC_ROOT = ''
+STATIC_ROOT = BASE_DIR
 STATIC_URL = 'static/'

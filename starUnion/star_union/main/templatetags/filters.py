@@ -11,8 +11,10 @@ def to_json(json_string):
     for char in json_string:
         if char == "\'":
             after_modified += '"'
-        elif char == "\"":
-            after_modified += "'"
         else:
             after_modified += char
-    return json.loads(after_modified[1:-1])
+    print(after_modified[1:-1])
+    try:
+        return json.loads(after_modified[1:-1])
+    except json.JSONDecodeError:
+        return {}
