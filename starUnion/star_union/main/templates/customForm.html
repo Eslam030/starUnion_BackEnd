@@ -15,21 +15,60 @@
 {% endblock %}
 
 {% block content %}
-    {{ block.super }}
+    <!--{{ block.super }}-->
 
     {% for fieldset in adminform  %}
         {% for line in fieldset%}
             {% for field in line %}
                 {% if field.field.label == 'Form' %}
                     <!--{{ field.field.value }}-->
-                        {% with field.field.value as my_json %}
-                            {% with my_json|to_json as json_data %}
-                                <!--Customization of the form to display-->
-                                {% for key, value in json_data.items %}
-                                    {{ key }} -  {{ value }}
-                                {% endfor %}
-                            {% endwith %}
-                        {% endwith %}
+                    <div class = "content w-100">
+                        <div class = "content-fluid">
+                            <div class = "row">
+                                <div class = "col-md-12" >
+                                    {% with field.field.value as my_json %}
+                                        {% with my_json|to_json as json_data %}
+                                            <!--Customization of the form to display-->
+                                            {% for key, value in json_data.items %}
+                                                {% if value|is_list %}
+                                                    <div class = "row">
+                                                        <div class = "col-md-12">
+                                                                <label for="inputName">{{key}}</label>
+                                                        </div>
+                                                        {% for item in value%} 
+                                                        {% for k, v in item.items %}
+                                                            <div class = "mr-5 ml-2">
+                                                                <div class="form-group ">
+                                                                    <label for="inputName">{{k}}</label>
+                                                                    {% if v == '1' %}
+                                                                        <input class = "ml-2 pt-5" type="checkbox" name = "{{key}}" checked>
+                                                                    {% else %}
+                                                                        <input class = "ml-2 pt-5" type="checkbox" name = "{{key}}" >
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="row">
+                                                        <div class = "col-md-12">
+                                                            <label for="inputName">{{key}}</label>
+                                                        </div>
+                                                        <div class="col-md-6" >
+                                                            <div class="form-group">
+                                                                <textarea type="text" class="form-control">{{value}}</textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 {% endif %}
             {% endfor %}
         {% endfor %}

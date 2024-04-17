@@ -7,3 +7,4 @@ class EventsConfig(AppConfig):
 
     def ready(self) -> None:
         import events.signals
+        import events.serializer

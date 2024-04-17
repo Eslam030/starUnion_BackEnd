@@ -65,13 +65,14 @@ def post_remove_signal(sender, instance, action, **kwargs):
 
 @receiver(pre_delete, sender=events)
 def create_comms_group(sender, instance, **kwargs):
-    shutil.rmtree(settings.BASE_DIR / "events/EveryEventData/" / instance.name)
+    if os.path.exists(settings.BASE_DIR / "events/EveryEventData/" / instance.name):
+        shutil.rmtree(settings.BASE_DIR /
+                      "events/EveryEventData/" / instance.name)
 
 # delete photo path after it is removed
 
 
 @receiver(pre_delete, sender=photos)
 def create_comms_group(sender, instance, **kwargs):
-    print(instance.photo.path)
     if os.path.exists(instance.photo.path):
         os.remove(instance.photo.path)

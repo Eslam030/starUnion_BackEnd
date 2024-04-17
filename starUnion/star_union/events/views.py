@@ -4,7 +4,7 @@ from . import models
 from django.core import serializers
 from django.http import JsonResponse
 import json
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 
 
 class events (DefaultAPIView):
@@ -49,7 +49,7 @@ class events (DefaultAPIView):
         #     self.responseData['modified'] = True
         # return JsonResponse(self.responseData, safe=False)
 
-        return HttpResponseForbidden('Not Valid Right Now Coming Soon')
+        return HttpResponse('Not Valid Right Now Coming Soon')
 
 
 class registerForEvent (AuthenticationAPIView):

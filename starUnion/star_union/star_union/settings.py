@@ -77,7 +77,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
     'ACCESS_TOKEN_LIFETIME': timedelta(seconds=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=20),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=10),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 
@@ -160,8 +160,7 @@ DATABASES = {
 # Custom Authentication to our custom user
 AUTHENTICATION_BACKEND = []
 
-DATABASE_ROUTERS = ['star_union.routers.mainRouter',
-                    'star_union.routers.workShopRouter', 'star_union.routers.eventRouter']
+DATABASE_ROUTERS = ['star_union.routers.mainRouter']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -13,8 +13,12 @@ def to_json(json_string):
             after_modified += '"'
         else:
             after_modified += char
-    print(after_modified[1:-1])
     try:
         return json.loads(after_modified[1:-1])
     except json.JSONDecodeError:
         return {}
+
+
+@register.filter(name='is_list')
+def is_list(value):
+    return isinstance(value, list)

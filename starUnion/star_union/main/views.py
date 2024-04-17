@@ -1,11 +1,10 @@
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
-from star_union.serializers import userLoginSerializer
-from .models import optData, BlackListed
+from .serializer import userLoginSerializer, userSerializer
+from .models import user_refresh_token, BlackListed, optData
 from django.http import JsonResponse, HttpResponse
 import json
 from django.conf import settings
-import jwt
 from jwt import PyJWS
 from rest_framework import exceptions
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -16,9 +15,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import pytz
-import base64
-from PIL import Image
-from email.mime.image import MIMEImage
+from main.mail_template import otpMailTemplate
+from django.utils import timezone
 # this custom APIView for classes that
 # i want to handle the expiration of the token i a custom way
 # not just raise Not authentication Exception when it is expired
@@ -47,6 +45,12 @@ class AuthenticationAPIView (DefaultAPIView):
             user_id = tokenJson['user_id']
             self.user = User.objects.all().filter(
                 id=user_id).first()
+            refresh_token = user_refresh_token.objects.all().filter(user=self.user).first()
+            if refresh_token != None:
+                token = PyJWS._load(self, jwt=refresh_token.token)
+                refresh_token_data = json.loads(str(token[0])[2:-1])
+                if refresh_token_data['exp'] < time.time():
+                    BlackListed.objects.create(user=self.user)
             black = BlackListed.objects.all().filter(user=self.user).first()
             if black != None:
                 raise exceptions.NotAuthenticated
@@ -62,6 +66,12 @@ class AuthenticationAPIView (DefaultAPIView):
                     refreshedToken = RefreshToken.for_user(self.user)
                     jwt.decode(str(refreshedToken.access_token).encode('utf-8'),
                                settings.SECRET_KEY, 'HS256')
+                    if refresh_token != None:
+                        refresh_token.token = refreshedToken
+                        refresh_token.save()
+                    else:
+                        refresh_token.objects.create(
+                            user=self.user, token=refreshedToken)
                     self.updatedTokenAccess = str(refreshedToken.access_token)
                     self.updateRefreshToken = str(refreshedToken)
                 else:
@@ -74,6 +84,7 @@ class AuthenticationAPIView (DefaultAPIView):
 
 class login (DefaultAPIView):
     def post(self, request):
+        self.responseData = {}
         ser = userLoginSerializer(data=request.data)
         if ser.is_valid():
             if len(ser.validated_data) == 0:
@@ -84,8 +95,14 @@ class login (DefaultAPIView):
                     black.delete()
                 self.responseData['message'] = 'done'
                 self.responseData['access'] = ser.validated_data.get('access')
-                self.responseData['refresh'] = ser.validated_data.get(
-                    'refresh')
+                refresh_token = user_refresh_token.objects.all().filter(
+                    user=ser.validated_data.get('user')).first()
+                if refresh_token != None:
+                    refresh_token.token = ser.validated_data.get('refresh')
+                    refresh_token.save()
+                else:
+                    user_refresh_token.objects.create(user=ser.validated_data.get(
+                        'user'), token=ser.validated_data.get('refresh'))
         else:
             self.responseData['message'] = 'Not valid credentials'
 
@@ -99,6 +116,20 @@ class logout(AuthenticationAPIView):
         record.user = self.user
         record.save()
         return JsonResponse(self.responseData, safe=False)
+
+
+class register (DefaultAPIView):
+    def post(self, request):
+        self.responseData = {}
+        # get the data from the request
+        ser = userSerializer(data=request.data)
+        if ser.is_valid():
+            response = ser.create(ser.validated_data)
+            self.responseData['message'] = response['message']
+        else:
+            self.responseData['message'] = 'Not valid data'
+        return JsonResponse(self.responseData, safe=False)
+    # using user serlializer and form submited
 
 
 class test (AuthenticationAPIView):
@@ -125,36 +156,8 @@ class otp (DefaultAPIView):
         message["To"] = receverEmail
         message["Subject"] = "Star Union OTP For Registration"
         # will here attach the logo after we deploy the server
-        body = f"""
-                <html>
-                <head>
-                    <title>Confirmation Email</title>
-                </head>
-                <body style="font-family: Arial, sans-serif; ">
 
-                    <!-- Logo -->
-                    <div style="text-align: center;">
-                        <img src="#" alt="Your Logo" style="max-width: 150px; border-radius:50%;
-                        filter: drop-shadow(0 0 0.3rem #13022d);">
-                    </div>
-
-                    <!-- Main Content -->
-                    <div style="margin: 20px;">
-                        <h1 style="text-align: center;">Confirm to be a star 💫</h1>
-                        <p style="text-align: center;">
-                            Thank you for your interest! We're excited to have you join us.
-                            Please click the button below to confirm your star status:
-                        </p>
-
-                        <!-- Confirmation Button -->
-                        <div style="text-align: center; margin-top: 20px; color : red">
-                            <p>Your Otp is: {otp}</p>
-                        </div>
-                    </div>
-
-                </body>
-            </html>
-        """
+        body = otpMailTemplate(otp).getTemplate()
         message.attach(MIMEText(body, "html"))
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()  # Secure the connection
@@ -170,6 +173,7 @@ class otp (DefaultAPIView):
             newRecord = optData()
             newRecord.email = receverEmail
             newRecord.otp = otp
+            newRecord.initTime = timezone.now()
             newRecord.save()
         return JsonResponse({'message': 'Done get OTP'})
         # getting the email from the request
@@ -182,7 +186,7 @@ class otp (DefaultAPIView):
             currentDate = datetime.datetime.now(pytz.timezone('Africa/Cairo'))
             delta = currentDate - record.initTime
             datla = delta.total_seconds() / 60
-            exipryMinutes = datetime.timedelta(minutes=5)
+            exipryMinutes = datetime.timedelta(seconds=10)
             if delta > exipryMinutes:
                 return JsonResponse({'message': 'expired OTP Request Another one'})
             if record.otp == otp:
@@ -194,14 +198,9 @@ class otp (DefaultAPIView):
             return JsonResponse({'message': 'Request OTP'})
 
 
-class register (DefaultAPIView):
-    # using user serlializer and form submited
-    def post(self, request):
-        pass
-
-
 class upgrade (AuthenticationAPIView):
     # this not useful in the delivery
+    # will be developed in the next delivery
     pass
 
 
@@ -209,7 +208,11 @@ class updateData (AuthenticationAPIView):
     # using user serlializer and form submited
     # will be handeled later
     def put(self, request):
-        pass
+        ser = userSerializer(data=request.data)
+        if ser.is_valid():
+            response = ser.update(self.user, ser.validated_data)
+            self.responseData['message'] = response['message']
+        return JsonResponse(self.responseData, safe=False)
 
 
 class changePass (AuthenticationAPIView):
@@ -236,7 +239,6 @@ class imageHandeller (DefaultAPIView):
         path = request.GET.get('path')
         if str(path).split('/')[-1] in blocked_images:
             AuthenticationAPIView.perform_authentication(self, request)
-        path = request.GET.get('path')
         with open(settings.BASE_DIR / path, 'rb') as f:
             imageData = f.read()
         # return JsonResponse(self.responseData)

@@ -13,7 +13,7 @@ class AdminForms(admin.ModelAdmin):
 
 for model in models:
     if not admin.site.is_registered(model):
-        if model != 'Forms':
+        if model.__name__ == 'Forms':
             admin.site.register(model, AdminForms)
         else:
             admin.site.register(model)
