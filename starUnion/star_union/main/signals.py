@@ -5,7 +5,6 @@ from .models import user_profile_images
 
 @receiver(post_migrate)
 def create_default_records(sender, **kwargs):
-    print('test')
     if sender.name == 'main':  # Replace 'app' with the name of your app
         # Check if default records exist
         if not user_profile_images.objects.exists():

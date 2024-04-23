@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.apps import apps
 from django.conf import settings
+from .models import workshopForm
 
 
 class AdminForms(admin.ModelAdmin):
-
+    form = workshopForm
     change_form_template = str(
         settings.BASE_DIR / 'workshops/templates/customForm.html')
 

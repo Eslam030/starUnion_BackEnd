@@ -4,6 +4,7 @@ from main.models import user_profile_images, user
 from django.contrib.auth.models import User
 from events import models
 from rest_framework_simplejwt.tokens import RefreshToken
+from enum import Enum
 
 
 class gender_creator():
@@ -43,7 +44,9 @@ class userSerializer (serializers.Serializer):
         djangoUser = User.objects.create_user(
             username=username,
             email=validated_data['email'],
-            password=validated_data['password']
+            password=validated_data['password'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
         )
         djangoUser.save()
         user = models.user(
@@ -74,11 +77,11 @@ class userSerializer (serializers.Serializer):
         instance.user.username = validated_data.get(
             'username', instance.user.username)
         instance.user.email = validated_data.get('email', instance.user.email)
-        instance.user.save()
-        instance.first_name = validated_data.get(
+        instance.user.first_name = validated_data.get(
             'first_name', instance.first_name)
-        instance.last_name = validated_data.get(
+        instance.user.last_name = validated_data.get(
             'last_name', instance.last_name)
+        instance.user.save()
         instance.phone = validated_data.get('phone', instance.phone)
         instance.university = validated_data.get(
             'university', instance.university)

@@ -2,8 +2,36 @@
 {% extends "admin/change_form.html" %}
 {% load filters %}
 {% load jazzmin %}
+{% load static %}
 {% block extrastyle %}
     {{ block.super }}
+    <style>
+        .remove {
+            color: red;
+            font-size: 0.7rem;
+            position: absolute;
+            top: 0.3rem;
+            cursor: pointer;
+            right: 0.3rem;
+        }
+        .remove:hover {
+            color: darkred;
+        }
+        .list-item {
+            border: 0px ;
+            border-radius: 0px;
+            position: relative;
+        }
+        .list-item:hover {
+            background-color: #f0f0f0;
+        }
+        .items-container {
+            border: 1px solid black;
+             border-radius: 1rem;
+              row-gap: 1rem;
+              max-width: 50vw;
+        }
+    </style>
     <!-- Add your custom CSS here -->
 {% endblock %}
 
@@ -15,62 +43,19 @@
 {% endblock %}
 
 {% block content %}
-    <!--{{ block.super }}-->
+    {{ block.super }}
+{% endblock %}
 
-    {% for fieldset in adminform  %}
-        {% for line in fieldset%}
-            {% for field in line %}
-                {% if field.field.label == 'Form' %}
-                    <!--{{ field.field.value }}-->
-                    <div class = "content w-100">
-                        <div class = "content-fluid">
-                            <div class = "row">
-                                <div class = "col-md-12" >
-                                    {% with field.field.value as my_json %}
-                                        {% with my_json|to_json as json_data %}
-                                            <!--Customization of the form to display-->
-                                            {% for key, value in json_data.items %}
-                                                {% if value|is_list %}
-                                                    <div class = "row">
-                                                        <div class = "col-md-12">
-                                                                <label for="inputName">{{key}}</label>
-                                                        </div>
-                                                        {% for item in value%} 
-                                                        {% for k, v in item.items %}
-                                                            <div class = "mr-5 ml-2">
-                                                                <div class="form-group ">
-                                                                    <label for="inputName">{{k}}</label>
-                                                                    {% if v == '1' %}
-                                                                        <input class = "ml-2 pt-5" type="checkbox" name = "{{key}}" checked>
-                                                                    {% else %}
-                                                                        <input class = "ml-2 pt-5" type="checkbox" name = "{{key}}" >
-                                                                    {% endif %}
-                                                                </div>
-                                                            </div>
-                                                        {% endfor %}
-                                                    {% endfor %}
-                                                    </div>
-                                                {% else %}
-                                                    <div class="row">
-                                                        <div class = "col-md-12">
-                                                            <label for="inputName">{{key}}</label>
-                                                        </div>
-                                                        <div class="col-md-6" >
-                                                            <div class="form-group">
-                                                                <textarea type="text" class="form-control">{{value}}</textarea>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% endwith %}
-                                    {% endwith %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-            {% endfor %}
-        {% endfor %}
-    {% endfor %}
+{% block extrajs %}
+{{block.super}}
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">  </script>
+    <script type="text/javascript" src = "{% static 'assets/js/form_content.js' %}" >
+        
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            load_content('Form', '#id_form', '#form-container');
+        });
+    </script>
+
 {% endblock %}

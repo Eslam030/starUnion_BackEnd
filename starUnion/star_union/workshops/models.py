@@ -1,9 +1,13 @@
 from django.db import models
 from main.models import user, crew, Forms
+from django import forms
 
 
 class photos (models.Model):
-    image = models.ImageField(upload_to="workshops\\photos")
+    photo = models.ImageField(upload_to="workshops\\photos")
+
+    def __str__(self):
+        return self.photo.name.split("\\")[-1]
 
 
 class workshops (models.Model):
@@ -23,48 +27,63 @@ class workshops (models.Model):
     location = models.CharField(max_length=512)
     logo = models.ImageField(blank=True)
     workshop_photos = models.ManyToManyField(photos,  blank=True)
-    content = models.JSONField()
-    form = models.JSONField()
+    content = models.JSONField(default="{}")
+    form = models.JSONField(default="{}")
 
     def __str__(self) -> str:
         return self.name
 
-    # override the save method to save the logo in the right folder
-    def save(self, *args, **kwargs):
-        if "/" not in str(self.logo):
-            self.logo.name = "workshops/EveryWorkshopData/" + \
-                self.name + "/logos/" + self.logo.name
-        super(*args, **kwargs).save()
-
 
 class instructing (models.Model):
-    instructor = models.ForeignKey(
-        crew,
-        on_delete=models.CASCADE,
-    )
-    workshop = models.ForeignKey(
-        workshops,
-        on_delete=models.CASCADE,
-    )
+    instructor = models.ForeignKey(crew, on_delete=models.CASCADE)
+    workshop = models.ForeignKey(workshops, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['instructor', 'workshop'], name='composite_workshop_instructor_pk')
+        ]
+
+    def __str__(self):
+        return f"{self.instructor.firtname} {self.instructor.firtname} instructing {self.workshop.name}"
+
+
+class workshopForm (forms.ModelForm):
+    class Meta:
+        model = workshops
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data['start_date'] > cleaned_data['end_date']:
+            raise forms.ValidationError(
+                "The start date must be before the end date")
+        return cleaned_data
 
 
 class taking (models.Model):
-    participant = models.ForeignKey(
-        user,
-        on_delete=models.CASCADE,
-    )
-    workshop = models.ForeignKey(
-        workshops,
-        on_delete=models.CASCADE,
-    )
+    participant = models.ForeignKey(user, on_delete=models.CASCADE)
+    workshop = models.ForeignKey(workshops, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['participant', 'workshop'], name='composite_workshop_participant_pk')
+        ]
+
+    def __str__(self):
+        return f"{self.participant.firtname} {self.participant.firtname} taking {self.workshop.name}"
 
 
-class W_Register (models.Model):
-    form = models.ForeignKey(
-        Forms,
-        on_delete=models.CASCADE,
-    )
-    workshop = models.ForeignKey(
-        workshops,
-        on_delete=models.CASCADE,
-    )
+class workshopRegister (models.Model):
+    form = models.ForeignKey(Forms, on_delete=models.CASCADE)
+    workshop = models.ForeignKey(workshops, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['form', 'workshop'], name='composite_workshop_form_pk')
+        ]
+
+    def __str__(self):
+        return f"{self.form.id} for {self.workshop.name}"

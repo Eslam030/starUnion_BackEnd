@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from main.views import DefaultAPIView, AuthenticationAPIView
-from events import models
-from django.http import JsonResponse, HttpResponse
+from . import models
+from django.http import JsonResponse, HttpResponseForbidden
 from django.core import serializers
 import json
 
@@ -51,7 +51,7 @@ class workshop (DefaultAPIView):
         #     self.responseData['modified'] = True
         # return JsonResponse(self.responseData, safe=False)
 
-        return HttpResponse('Not Valid Right Now Coming Soon')
+        return HttpResponseForbidden('Not Valid Right Now Coming Soon')
 
 
 class registerForWorkshop (AuthenticationAPIView):
@@ -71,8 +71,21 @@ class acceptWorkshop (AuthenticationAPIView):
         pass
 
 
-class addInstructor (AuthenticationAPIView):
-    # should be a member or higher to add an instructor
+class instructor (DefaultAPIView):
+    def get(self, request):
+        # here will return all instructors
+        pass
+
     def post(self, request):
-        # here will make the logic or adding instructor to workshop
+        # here will add an instructor
+        pass
+
+
+class participant (DefaultAPIView):
+    def get(self, request):
+        # here will return all participants
+        pass
+
+    def post(self, request):
+        # here will add a participant
         pass

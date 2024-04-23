@@ -1,7 +1,8 @@
+from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from .serializer import userLoginSerializer, userSerializer
-from .models import user_refresh_token, BlackListed, optData
+from .models import user_refresh_token, BlackListed, optData, user, user_profile_images
 from django.http import JsonResponse, HttpResponse
 import json
 from django.conf import settings
@@ -142,6 +143,8 @@ class test (AuthenticationAPIView):
 
 
 class otp (DefaultAPIView):
+    otp_duration_in_minutes = 3
+
     def post(self, request):  # for sending otp
         # Generate a random base32 secret key
         secret = pyotp.random_base32()
@@ -157,7 +160,8 @@ class otp (DefaultAPIView):
         message["Subject"] = "Star Union OTP For Registration"
         # will here attach the logo after we deploy the server
 
-        body = otpMailTemplate(otp).getTemplate()
+        body = otpMailTemplate(
+            otp, "https://starunion.pythonanywhere.com/main/getImage/?path=star_union/assets/logo.png").getTemplate()
         message.attach(MIMEText(body, "html"))
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()  # Secure the connection
@@ -186,7 +190,8 @@ class otp (DefaultAPIView):
             currentDate = datetime.datetime.now(pytz.timezone('Africa/Cairo'))
             delta = currentDate - record.initTime
             datla = delta.total_seconds() / 60
-            exipryMinutes = datetime.timedelta(seconds=10)
+            exipryMinutes = datetime.timedelta(
+                minutes=self.otp_duration_in_minutes)
             if delta > exipryMinutes:
                 return JsonResponse({'message': 'expired OTP Request Another one'})
             if record.otp == otp:
@@ -235,7 +240,7 @@ class imageHandeller (DefaultAPIView):
         return None
 
     def get(self, request):
-        blocked_images = ['logo.png']
+        blocked_images = []
         path = request.GET.get('path')
         if str(path).split('/')[-1] in blocked_images:
             AuthenticationAPIView.perform_authentication(self, request)
@@ -245,6 +250,23 @@ class imageHandeller (DefaultAPIView):
         return HttpResponse(imageData, content_type="image/png")
 
 
+class userHandeler (AuthenticationAPIView):
+    def get(self, request):
+        userData = user.objects.all().filter(user=self.user).first()
+        userDict = {
+            'first_name': self.user.first_name,
+            'last_name': self.user.last_name,
+            'email': self.user.email,
+            'phone': userData.phone,
+            'university': userData.university,
+            'collage': userData.collage,
+            'level': userData.level,
+            'photo': userData.photo.photo.path
+        }
+        self.responseData['message'] = 'Done'
+        self.responseData['user'] = userDict
+
+        return JsonResponse(self.responseData, safe=False)
 # how to handle images
 # print(request.data)
 # print(request.data['fdsafds'])

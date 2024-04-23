@@ -49,20 +49,20 @@ class events (DefaultAPIView):
         #     self.responseData['modified'] = True
         # return JsonResponse(self.responseData, safe=False)
 
-        return HttpResponse('Not Valid Right Now Coming Soon')
+        return HttpResponseForbidden('Not Valid Right Now Coming Soon')
 
 
 class registerForEvent (AuthenticationAPIView):
     def post(self, request):
         # here will make the logic or registering user with event
         # using the event id and user id
-        envetId = request.POST.get('event_id')
-        event = models.events.objects.all().filter(id=envetId).first()
+        envet = request.POST.get('event')
+        event = models.events.objects.all().filter(name=envet).first()
         if event != None:
             if event.status != models.events.eventStatus.PAST:
                 record = models.attending()
-                record.user_id = self.user.id
-                record.event_id = event.id
+                record.user = user.objects.all().filter(user=self.user).first()
+                record.event = event
                 record.save()
                 self.responseData['message'] = 'Done'
             else:
@@ -113,6 +113,11 @@ class sponsors (DefaultAPIView):
         self.responseData['message'] = 'Done'
         return JsonResponse(self.responseData, safe=False)
 
+    def perform_authentication(self, request):
+        # delete this function
+        # to apply the custom funtion of AuthenticationAPIView
+        return None
+
     def post(self, request):  # for register a sponsor
         # and must be a member or higher
         # will create sponsor based on form using sponsor serializer (next delivery!!!!!)
@@ -146,6 +151,11 @@ class partners (DefaultAPIView):
         self.responseData['data'] = jsonPartenerData
         self.responseData['message'] = 'Done'
         return JsonResponse(self.responseData, safe=False)
+
+    def perform_authentication(self, request):
+        # delete this function
+        # to apply the custom funtion of AuthenticationAPIView
+        return None
 
     def post(self, request):  # for register a partener
         # and must be a member or higher

@@ -1,0 +1,7 @@
+- workshops
+- crew and forms
+--- workshop is done 
+- contact us
+- join us
+- nav bar elements 
+--- whole API is done 
