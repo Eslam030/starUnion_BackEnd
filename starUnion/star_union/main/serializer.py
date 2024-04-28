@@ -6,6 +6,14 @@ from events import models
 from rest_framework_simplejwt.tokens import RefreshToken
 from enum import Enum
 
+import re
+
+
+def is_valid_email(email):
+    # Regular expression pattern for validating email addresses
+    pattern = r'^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
 
 class gender_creator():
     def __init__(self, value):
@@ -92,22 +100,43 @@ class userSerializer (serializers.Serializer):
 
 
 class userLoginSerializer (serializers.Serializer):
-    username = serializers.CharField()
+    username_or_email = serializers.CharField()
     password = serializers.CharField()
 
     def validate(self, attrs):
         # search for user to log him in
-        user = authenticate(
-            username=attrs['username'], password=attrs['password'])
-        if user is not None:
-            user = User.objects.all().filter(id=user.id).first()
-            refresh = RefreshToken.for_user(user)
-            return {
-                'username': user,
-                'email': user.email,
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-                'user': user
-            }
+        if is_valid_email(attrs['username_or_email']):
+            user = User.objects.all().filter(
+                email=attrs['username_or_email']).first()
+            if user is not None:
+                user = authenticate(
+                    username=user.username, password=attrs['password'])
+                if user is not None:
+                    user = User.objects.all().filter(id=user.id).first()
+                    refresh = RefreshToken.for_user(user)
+                    return {
+                        'username': user.username,
+                        'email': user.email,
+                        'access': str(refresh.access_token),
+                        'refresh': str(refresh),
+                        'user': user
+                    }
+                else:
+                    return {}
+            else:
+                return {}
         else:
-            return {}
+            user = authenticate(
+                username=attrs['username_or_email'], password=attrs['password'])
+            if user is not None:
+                user = User.objects.all().filter(id=user.id).first()
+                refresh = RefreshToken.for_user(user)
+                return {
+                    'username': user.username,
+                    'email': user.email,
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'user': user
+                }
+            else:
+                return {}

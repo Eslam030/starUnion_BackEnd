@@ -18,7 +18,11 @@ class events (DefaultAPIView):
         # and AuthenticationAPIView will need a token to operate
         events = None
         if (request.GET.get('id') != None):
-            events = models.events.objects.all().filter(id=request.GET['id'])
+            event_user_attending = models.attending.objects.all().filter(
+                user_id=request.GET['id'])
+            events = set()
+            for event in event_user_attending:
+                events.add(event.event)
         else:
             events = models.events.objects.all()
         basicEventData = serializers.serialize('json', events)
@@ -100,9 +104,12 @@ class sponsors (DefaultAPIView):
         # will return all data about the sponsors
         # if an id is given will return all sponsorsfor a specific event
         sponsors = None
-        if (request.GET.get('id') != None):
-            sponsors = models.sponsors.objects.all().filter(
-                id=request.GET['id'])
+        if (request.GET.get('event') != None):
+            sponsors_event = models.sponsoring.objects.all().filter(
+                event=request.GET['event'])
+            sponsors = set()
+            for sponsor in sponsors_event:
+                sponsors.add(sponsor.sponsor)
         else:
             sponsors = models.sponsors.objects.all()
         basicSponsorData = serializers.serialize('json', sponsors)
@@ -135,20 +142,23 @@ class sponsors (DefaultAPIView):
 
 
 class partners (DefaultAPIView):
-    def get(self, request):  # for getting data about parteners
-        # will return all data about the parteners
-        # if an id is given will return all parteners for a specific event
-        parteners = None
-        if (request.GET.get('id') != None):
-            parteners = models.partnrships.objects.all().filter(
-                id=request.GET['id'])
+    def get(self, request):  # for getting data about partners
+        # will return all data about the partners
+        # if an id is given will return all partners for a specific event
+        partners = None
+        if (request.GET.get('event') != None):
+            partners_event = models.partnerSponsoring.objects.all().filter(  # check this
+                event=request.GET['event'])
+            partners = set()
+            for partener in partners_event:
+                partners.add(partener.partner)
         else:
-            parteners = models.partnrships.objects.all()
-        basicPartenerData = serializers.serialize('json', parteners)
-        jsonPartenerData = json.loads(basicPartenerData)
-        for i in range(len(jsonPartenerData)):
-            del jsonPartenerData[i]['model']
-        self.responseData['data'] = jsonPartenerData
+            partners = models.partnrships.objects.all()
+        basicPartnerData = serializers.serialize('json', partners)
+        jsonPartnerData = json.loads(basicPartnerData)
+        for i in range(len(jsonPartnerData)):
+            del jsonPartnerData[i]['model']
+        self.responseData['data'] = jsonPartnerData
         self.responseData['message'] = 'Done'
         return JsonResponse(self.responseData, safe=False)
 

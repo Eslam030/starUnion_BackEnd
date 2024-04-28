@@ -33,6 +33,16 @@ class user (models.Model):
         return self.user.username
 
 
+class crew (models.Model):
+    member = models.OneToOneField(
+        user, on_delete=models.CASCADE, primary_key=True)
+    role = models.CharField(max_length=50)
+    rate = models.FloatField()
+
+    def __str__(self) -> str:
+        return self.member.user.username
+
+
 class user_refresh_token (models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True)
@@ -53,21 +63,8 @@ class BlackListed (models.Model):
 class Forms (models.Model):
     form = models.JSONField()
 
-    def save(self, *args, **kwargs):
-        self.form = str(self.form)
-
-        super(*args, **kwargs).save()
-
     def __str__(self) -> str:
         return str(self.id)
-
-
-class crew (user):
-    role = models.TextField(max_length=50)
-    rate = models.FloatField()
-
-    def __str__(self) -> str:
-        return super().__str__()
 
 
 class optData (models.Model):

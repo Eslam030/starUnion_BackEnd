@@ -30,6 +30,7 @@ class events (models.Model):
     location = models.CharField(max_length=512)
     logo = models.ImageField(blank=True, null=True)
     event_photos = models.ManyToManyField(photos,  blank=True)
+    description = models.TextField()
 
     def __str__(self) -> str:
         return self.name

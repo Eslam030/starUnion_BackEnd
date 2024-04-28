@@ -47,14 +47,14 @@
 
 {% block extrajs %}
 {{block.super}}
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">  </script>
-    <script type="text/javascript" src = "{% static 'assets/js/form_content.js' %}" >
-        
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script> let change = true; </script>
+    <script type="text/javascript" src = "{% static 'assets/js/form_content.js' %}" > 
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
         load_content('Content', '#id_content', '#content-container');
-        load_content('Form', '#id_form', '#form-container');
+        load_content('Form', '#id_form', '#form-container' );
     });
     </script>
 {% endblock %}

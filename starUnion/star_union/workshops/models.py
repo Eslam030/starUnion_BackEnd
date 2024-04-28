@@ -21,14 +21,15 @@ class workshops (models.Model):
     end_date = models.DateField()
     price = models.FloatField()
     duration = models.DurationField()
+    description = models.TextField()
     availability = models.BooleanField()
     status = models.CharField(max_length=2, choices=workshopStatus.choices)
     # location is saved as the embbaded google maps link
     location = models.CharField(max_length=512)
     logo = models.ImageField(blank=True)
     workshop_photos = models.ManyToManyField(photos,  blank=True)
-    content = models.JSONField(default="{}")
-    form = models.JSONField(default="{}")
+    content = models.JSONField()
+    form = models.JSONField()
 
     def __str__(self) -> str:
         return self.name
@@ -45,7 +46,7 @@ class instructing (models.Model):
         ]
 
     def __str__(self):
-        return f"{self.instructor.firtname} {self.instructor.firtname} instructing {self.workshop.name}"
+        return f"{self.instructor.member.user.first_name} {self.instructor.member.user.last_name} _instructing_ {self.workshop.name}"
 
 
 class workshopForm (forms.ModelForm):
@@ -64,6 +65,7 @@ class workshopForm (forms.ModelForm):
 class taking (models.Model):
     participant = models.ForeignKey(user, on_delete=models.CASCADE)
     workshop = models.ForeignKey(workshops, on_delete=models.CASCADE)
+    points = models.FloatField(default=0.0)
 
     class Meta:
         constraints = [
@@ -72,18 +74,19 @@ class taking (models.Model):
         ]
 
     def __str__(self):
-        return f"{self.participant.firtname} {self.participant.firtname} taking {self.workshop.name}"
+        return f"{self.participant.user.first_name} {self.participant.user.last_name} _taking_ {self.workshop.name}"
 
 
 class workshopRegister (models.Model):
     form = models.ForeignKey(Forms, on_delete=models.CASCADE)
     workshop = models.ForeignKey(workshops, on_delete=models.CASCADE)
+    user = models.ForeignKey(user, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['form', 'workshop'], name='composite_workshop_form_pk')
+                fields=['user', 'workshop'], name='composite_workshop_user_pk')
         ]
 
     def __str__(self):
-        return f"{self.form.id} for {self.workshop.name}"
+        return f"{self.user.user.first_name} regitered for {self.workshop.name}"

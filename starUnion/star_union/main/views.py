@@ -2,11 +2,12 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from .serializer import userLoginSerializer, userSerializer
-from .models import user_refresh_token, BlackListed, optData, user, user_profile_images
+from .models import *
 from django.http import JsonResponse, HttpResponse
 import json
 from django.conf import settings
 from jwt import PyJWS
+import jwt
 from rest_framework import exceptions
 from rest_framework_simplejwt.tokens import RefreshToken
 import time
@@ -67,9 +68,12 @@ class AuthenticationAPIView (DefaultAPIView):
                     refreshedToken = RefreshToken.for_user(self.user)
                     jwt.decode(str(refreshedToken.access_token).encode('utf-8'),
                                settings.SECRET_KEY, 'HS256')
+
                     if refresh_token != None:
+
                         refresh_token.token = refreshedToken
                         refresh_token.save()
+
                     else:
                         refresh_token.objects.create(
                             user=self.user, token=refreshedToken)
@@ -91,11 +95,16 @@ class login (DefaultAPIView):
             if len(ser.validated_data) == 0:
                 self.responseData['message'] = 'Not valid credentials'
             else:
+
                 black = BlackListed.objects.all().filter(user=ser.validated_data.get('user'))
                 if black != None:
                     black.delete()
                 self.responseData['message'] = 'done'
                 self.responseData['access'] = ser.validated_data.get('access')
+                self.responseData['refrest'] = ser.validated_data.get(
+                    'refresh')
+                self.responseData['user'] = ser.validated_data.get(
+                    'user').username
                 refresh_token = user_refresh_token.objects.all().filter(
                     user=ser.validated_data.get('user')).first()
                 if refresh_token != None:
@@ -127,6 +136,18 @@ class register (DefaultAPIView):
         if ser.is_valid():
             response = ser.create(ser.validated_data)
             self.responseData['message'] = response['message']
+        else:
+            self.responseData['message'] = 'Not valid data'
+        return JsonResponse(self.responseData, safe=False)
+
+    def get(self, request):
+        if request.GET['email'] != None and request.GET['username']:
+            if User.objects.all().filter(username=request.GET['username']).first() != None:
+                self.responseData['message'] = 'Username Exists'
+            elif User.objects.all().filter(email=request.GET['email']).first() != None:
+                self.responseData['message'] = 'Email Exists'
+            else:
+                self.responseData['message'] = 'Done'
         else:
             self.responseData['message'] = 'Not valid data'
         return JsonResponse(self.responseData, safe=False)
@@ -220,18 +241,42 @@ class updateData (AuthenticationAPIView):
         return JsonResponse(self.responseData, safe=False)
 
 
-class changePass (AuthenticationAPIView):
+class changePass (DefaultAPIView):
+    def perform_authentication(self, request):
+        return None
+
     def put(self, request):
         # get the current password and the new password
-        currentPassword = request.POST['current']
-        newPassword = request.POST['new']
-        if self.user.check_password(currentPassword):
-            self.user.set_password(newPassword)
-            self.user.save()
-            # can change the password
-            return JsonResponse({'message': 'Done'})
+        currentPassword = request.POST.get('current')
+        newPassword = request.POST.get('new')
+        if currentPassword == None:
+            user = User.objects.all().filter(email=request.POST.get('email')).first()
+            user.set_password(newPassword)
+            user.save()
+            self.responseData['message'] = 'Done'
         else:
-            return JsonResponse({'message': 'Wrong Password'})
+            AuthenticationAPIView.perform_authentication(self, request)
+            if self.user.check_password(currentPassword):
+                self.user.set_password(newPassword)
+                self.user.save()
+                self.responseData['message'] = 'Done'
+                # can change the password
+            else:
+                self.responseData['message'] = 'Wrong Password'
+
+        return JsonResponse(self.responseData, safe=False)
+
+
+class forget (DefaultAPIView):
+    def get(self, request):
+        username_or_email = request.GET['username_or_email']
+        user = User.objects.all().filter(username=username_or_email).first()
+        if user == None:
+            user = User.objects.all().filter(email=username_or_email).first()
+        if user == None:
+            self.responseData['message'] = 'Note Valid Creditionals'
+        else:
+            self.responseData['message'] = user.email
 
 
 class imageHandeller (DefaultAPIView):
@@ -242,31 +287,54 @@ class imageHandeller (DefaultAPIView):
     def get(self, request):
         blocked_images = []
         path = request.GET.get('path')
-        if str(path).split('/')[-1] in blocked_images:
-            AuthenticationAPIView.perform_authentication(self, request)
-        with open(settings.BASE_DIR / path, 'rb') as f:
-            imageData = f.read()
-        # return JsonResponse(self.responseData)
-        return HttpResponse(imageData, content_type="image/png")
+        if (path == '' or path == None):
+            return HttpResponse('')
+        else:
+            if str(path).split('/')[-1] in blocked_images:
+                AuthenticationAPIView.perform_authentication(self, request)
+            with open(settings.BASE_DIR / path, 'rb') as f:
+                imageData = f.read()
+            # return JsonResponse(self.responseData)
+            return HttpResponse(imageData, content_type="image/png")
 
 
-class userHandeler (AuthenticationAPIView):
+class userHandeler (DefaultAPIView):
     def get(self, request):
-        userData = user.objects.all().filter(user=self.user).first()
+        username = request.GET['username']
+        basicUser = User.objects.all().filter(username=username).first()
+        userData = user.objects.all().filter(user=basicUser).first()
+        crewData = crew.objects.all().filter(member=userData).first()
         userDict = {
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
-            'email': self.user.email,
+            'first_name': userData.user.first_name,
+            'last_name': userData.user.last_name,
+            'email': userData.user.email,
             'phone': userData.phone,
             'university': userData.university,
             'collage': userData.collage,
             'level': userData.level,
-            'photo': userData.photo.photo.path
+            'photo': userData.photo.photo.name,
+            'gender': userData.gen,
         }
+        if crewData != None:
+            userDict['position'] = crewData.role
+            userDict['rate'] = crewData.rate
+        else:
+            userDict['position'] = 'Participant'
         self.responseData['message'] = 'Done'
         self.responseData['user'] = userDict
 
         return JsonResponse(self.responseData, safe=False)
+
+
+class userChecker (AuthenticationAPIView):
+    def get(self, request):
+        if self.user.username == request.GET['username']:
+            self.responseData['message'] = 'Yes'
+        else:
+            self.responseData['message'] = 'No'
+        return JsonResponse(self.responseData, safe=False)
+
+
 # how to handle images
 # print(request.data)
 # print(request.data['fdsafds'])
