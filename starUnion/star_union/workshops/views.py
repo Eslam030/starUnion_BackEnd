@@ -6,6 +6,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.core import serializers
 import json
 from django.contrib.auth.models import User
+from django.views import View
 
 # Create your views here.
 
@@ -50,7 +51,7 @@ class workshop (DefaultAPIView):
         for data in json_workshop_data:
             if data['pk'] in register:
                 data['status'] = 'register'
-            else:
+            elif data['pk'] in taking:
                 data['status'] = 'taking'
         self.responseData['data'] = json_workshop_data
         self.responseData['message'] = 'Done'
@@ -85,18 +86,23 @@ class registerForWorkshop (AuthenticationAPIView):
             name=request.POST.get('workshop')).first()
         form = request.POST.get('form')
         form = Forms.objects.create(form=form)
+        form.name = f"Form from {self.user.username} to register in {workshop.name}"
 
         userData = user.objects.all().filter(
             user=self.user).first()  # get the user from the token
+        print(workshop, form, userData)
         if workshop == None or form == None or userData == None:
             self.responseData['message'] = 'Invalid Data'
         else:
-            record = models.workshopRegister()
-            record.user = userData
-            record.workshop = workshop
-            record.form = form
-            record.save()
-            self.responseData['message'] = 'Done'
+            try:
+                record = models.workshopRegister()
+                record.user = userData
+                record.workshop = workshop
+                record.form = form
+                record.save()
+                self.responseData['message'] = 'Done'
+            except:
+                self.responseData['message'] = 'You Registered Before'
         return JsonResponse(self.responseData, safe=False)
 
     def get(self, request):
@@ -125,11 +131,58 @@ class top5(DefaultAPIView):
         return JsonResponse(self.responseData, safe=False)
 
 
-class acceptWorkshop (AuthenticationAPIView):
+class acceptWorkshop (View):
+    # this made by the admin
     # should be a member or higher to accept user in workshop
+    responseData = {}
+
+    def isAccepted(self, user, workshop):
+        if (models.taking.objects.all().filter(participant=user, workshop=workshop).first() != None):
+            return True
+        else:
+            return False
+
+    def get(self, request):
+        # here will return the status of the user in the workshop
+        if request.user != None and request.user.is_authenticated and request.user.is_staff:
+            workshop = request.GET.get('workshop')
+            username = request.GET.get('user')
+            workshop = models.workshops.objects.all().filter(name=workshop).first()
+            basicUser = User.objects.all().filter(username=username).first()
+            starUser = user.objects.all().filter(user=basicUser).first()
+            if workshop == None or starUser == None:
+                self.responseData['message'] = 'Invalid Data'
+            else:
+                if self.isAccepted(starUser, workshop):
+                    self.responseData['message'] = 'Accepted'
+                else:
+                    self.responseData['message'] = 'Not Accepted'
+        else:
+            return HttpResponseForbidden('Not Valid Right Now Coming Soon')
+        return JsonResponse(self.responseData, safe=False)
+
     def post(self, request):
         # here will make the logic or accepting user in workshop
-        pass
+        if request.user != None and request.user.is_authenticated and request.user.is_staff:
+            workshop = request.POST.get('workshop')
+            username = request.POST.get('user')
+            workshop = models.workshops.objects.all().filter(name=workshop).first()
+            basicUser = User.objects.all().filter(username=username).first()
+            starUser = user.objects.all().filter(user=basicUser).first()
+            if workshop == None or starUser == None:
+                self.responseData['message'] = 'Invalid Data'
+            else:
+                try:
+                    record = models.taking()
+                    record.participant = starUser
+                    record.workshop = workshop
+                    record.save()
+                    self.responseData['message'] = 'Done'
+                except:
+                    self.responseData['message'] = 'You Accepted Before'
+        else:
+            return HttpResponseForbidden('Not Valid Right Now Coming Soon')
+        return JsonResponse(self.responseData, safe=False)
 
 
 class instructor (DefaultAPIView):

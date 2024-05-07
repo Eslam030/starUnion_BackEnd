@@ -26,7 +26,7 @@ class gender_creator():
             return user.gender.female
 
 
-class userSerializer (serializers.Serializer):
+class userCreationSerializer (serializers.Serializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     username = serializers.CharField()
@@ -73,30 +73,36 @@ class userSerializer (serializers.Serializer):
             'user': user
         }
 
+
+class userUpdateSerializer (serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    gender = serializers.CharField()
+    phone = serializers.CharField()
+    university = serializers.CharField()
+    collage = serializers.CharField()
+    level = serializers.IntegerField()
+    photo = serializers.CharField()
+
     def update(self, instance, validated_data):
-        if User.objects.all().filter(username=validated_data['username']).first() is not None:
-            return {
-                'message': 'Username Exists'
-            }
-        if User.objects.all().filter(email=validated_data['email']).first() is not None:
-            return {
-                'message': 'Email Exists'
-            }
-        instance.user.username = validated_data.get(
-            'username', instance.user.username)
-        instance.user.email = validated_data.get('email', instance.user.email)
+        print('test')
+        instance = user.objects.all().filter(user=instance).first()
         instance.user.first_name = validated_data.get(
-            'first_name', instance.first_name)
+            'first_name')
         instance.user.last_name = validated_data.get(
-            'last_name', instance.last_name)
+            'last_name')
         instance.user.save()
-        instance.phone = validated_data.get('phone', instance.phone)
+        instance.phone = validated_data.get('phone')
         instance.university = validated_data.get(
-            'university', instance.university)
-        instance.collage = validated_data.get('collage', instance.collage)
-        instance.level = validated_data.get('level', instance.level)
+            'university')
+        instance.collage = validated_data.get('collage')
+        instance.level = validated_data.get('level')
+        instance.photo = user_profile_images.objects.all().filter(
+            id=validated_data['photo']).first()
         instance.save()
-        return instance
+        return {
+            'message': 'Done',
+        }
 
 
 class userLoginSerializer (serializers.Serializer):

@@ -61,10 +61,11 @@ class BlackListed (models.Model):
 
 
 class Forms (models.Model):
+    name = models.CharField(max_length=50, default="form")
     form = models.JSONField()
 
     def __str__(self) -> str:
-        return str(self.id)
+        return str(self.name)
 
 
 class optData (models.Model):

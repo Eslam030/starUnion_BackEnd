@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
-from .serializer import userLoginSerializer, userSerializer
+from .serializer import userLoginSerializer, userCreationSerializer, userUpdateSerializer
 from .models import *
 from django.http import JsonResponse, HttpResponse
 import json
@@ -132,7 +132,7 @@ class register (DefaultAPIView):
     def post(self, request):
         self.responseData = {}
         # get the data from the request
-        ser = userSerializer(data=request.data)
+        ser = userCreationSerializer(data=request.data)
         if ser.is_valid():
             response = ser.create(ser.validated_data)
             self.responseData['message'] = response['message']
@@ -233,11 +233,22 @@ class upgrade (AuthenticationAPIView):
 class updateData (AuthenticationAPIView):
     # using user serlializer and form submited
     # will be handeled later
+    def dataChecker(self, data):
+        if data.get('password') != None or data.get('username') != None or data.get('email') != None:
+            return False
+        else:
+            return True
+
     def put(self, request):
-        ser = userSerializer(data=request.data)
-        if ser.is_valid():
-            response = ser.update(self.user, ser.validated_data)
-            self.responseData['message'] = response['message']
+        if (not self.dataChecker(request.data)):
+            self.responseData['message'] = 'Not Valid Data'
+        else:
+            ser = userUpdateSerializer(data=request.data)
+            if ser.is_valid():
+                response = ser.update(self.user, ser.validated_data)
+                self.responseData['message'] = response['message']
+            else:
+                self.responseData['message'] = 'Not valid data'
         return JsonResponse(self.responseData, safe=False)
 
 
