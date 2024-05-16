@@ -1,6 +1,13 @@
 # starUnion_BackEnd
 
-### Just i will tell how to run the web application
+### Technologies Used
+- Django
+- Django Rest Framework 
+
+### Developers 
+- `Eslam Sayed`
+
+### How to run the web application
 
 After cloning this repo
 
@@ -11,3 +18,5 @@ After cloning this repo
 - if you don't want to user handle.py just use manage.py as the default
 
 - Before Any Commit please run handle.py with the deleteMigrations function (Don't Push without doing this )
+
+
