@@ -152,6 +152,10 @@ class top5(DefaultAPIView):
 class acceptWorkshop (View):
     # this made by the admin
     # should be a member or higher to accept user in workshop
+    reponseData = {}
+
+    def refreshResponseData(self):
+        self.responseData = {}
 
     def isAccepted(self, user, workshop):
         if (models.taking.objects.all().filter(participant=user, workshop=workshop).first() != None):
@@ -161,7 +165,7 @@ class acceptWorkshop (View):
 
     def get(self, request):
         # here will return the status of the user in the workshop
-        self.refreshResponseDate()
+        self.refreshResponseData()
         if request.user != None and request.user.is_authenticated and request.user.is_staff:
             workshop = request.GET.get('workshop')
             username = request.GET.get('user')
@@ -181,6 +185,7 @@ class acceptWorkshop (View):
 
     def post(self, request):
         # here will make the logic or accepting user in workshop
+        self.reponseData()
         if request.user != None and request.user.is_authenticated and request.user.is_staff:
             self.refreshResponseDate()
             workshop = request.POST.get('workshop')

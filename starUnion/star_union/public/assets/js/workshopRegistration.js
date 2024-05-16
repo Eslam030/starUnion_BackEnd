@@ -19,10 +19,11 @@ if (url[url.length - 2] !== 'add') {
             'workshop' : data['workshop'] ,  
             'user' : data['user']
         },
-        success: function(data) {
-            if (data.message === 'Accepted') {
+        success: function(response) {
+            if (response['message'] === 'Accepted') {
                 accepted = true ;
             }
+            console.log(response);
         },
         error: function(err) {
             console.log(err);
