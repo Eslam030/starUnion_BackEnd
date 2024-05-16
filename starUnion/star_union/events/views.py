@@ -16,6 +16,7 @@ class events (DefaultAPIView):
         # we can make it using the token !!
         # no because we want to make it public
         # and AuthenticationAPIView will need a token to operate
+        self.refreshResponseDate()
         events = None
         if (request.GET.get('id') != None):
             event_user_attending = models.attending.objects.all().filter(
@@ -60,6 +61,7 @@ class registerForEvent (AuthenticationAPIView):
     def post(self, request):
         # here will make the logic or registering user with event
         # using the event id and user id
+        self.refreshResponseDate()
         envet = request.POST.get('event')
         event = models.events.objects.all().filter(name=envet).first()
         if event != None:
@@ -84,6 +86,7 @@ class sponsorsEvents (AuthenticationAPIView):
         # this will be done in the next delivery
         # we can make it manully from the admin panel (for now only)
         # in the next delivery will be more automated
+        self.refreshResponseDate()
         return HttpResponseForbidden('Not Valid Right Now Coming Soon')
 
 
@@ -95,6 +98,7 @@ class partnerSponsoringEvents (AuthenticationAPIView):
         # this will be done in the next delivery
         # we can make it manully from the admin panel (for now only)
         # in the next delivery will be more automated
+        self.refreshResponseDate()
         return HttpResponseForbidden('Not Valid Right Now Coming Soon')
 
 
@@ -103,6 +107,7 @@ class sponsors (DefaultAPIView):
         # for getting data about sponsors
         # will return all data about the sponsors
         # if an id is given will return all sponsorsfor a specific event
+        self.refreshResponseDate()
         sponsors = None
         if (request.GET.get('event') != None):
             sponsors_event = models.sponsoring.objects.all().filter(
@@ -138,6 +143,7 @@ class sponsors (DefaultAPIView):
         #     self.responseData['access'] = self.updatedTokenAccess
         #     self.responseData['modified'] = True
         # return JsonResponse(self.responseData, safe=False)
+        self.refreshResponseDate()
         return HttpResponseForbidden('Not Valid Right Now Coming Soon')
 
 
@@ -145,6 +151,7 @@ class partners (DefaultAPIView):
     def get(self, request):  # for getting data about partners
         # will return all data about the partners
         # if an id is given will return all partners for a specific event
+        self.refreshResponseDate()
         partners = None
         if (request.GET.get('event') != None):
             partners_event = models.partnerSponsoring.objects.all().filter(  # check this
@@ -165,6 +172,7 @@ class partners (DefaultAPIView):
     def perform_authentication(self, request):
         # delete this function
         # to apply the custom funtion of AuthenticationAPIView
+        self.refreshResponseDate()
         return None
 
     def post(self, request):  # for register a partener
@@ -180,4 +188,5 @@ class partners (DefaultAPIView):
         #     self.responseData['access'] = self.updatedTokenAccess
         #     self.responseData['modified'] = True
         # return JsonResponse(self.responseData, safe=False)
+        self.refreshResponseDate()
         return HttpResponseForbidden('Not Valid Right Now Coming Soon')

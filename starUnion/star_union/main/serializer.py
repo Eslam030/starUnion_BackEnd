@@ -85,7 +85,6 @@ class userUpdateSerializer (serializers.Serializer):
     photo = serializers.CharField()
 
     def update(self, instance, validated_data):
-        print('test')
         instance = user.objects.all().filter(user=instance).first()
         instance.user.first_name = validated_data.get(
             'first_name')

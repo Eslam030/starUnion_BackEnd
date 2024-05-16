@@ -20,6 +20,7 @@ class workshop (DefaultAPIView):
         # we can make it using the token !!
         # no because we want to make it public
         # and AuthenticationAPIView will need a token to operate
+        self.refreshResponseDate()
         workshops = None
         register = {}
         taking = {}
@@ -76,37 +77,53 @@ class workshop (DefaultAPIView):
         #     self.responseData['access'] = self.updatedTokenAccess
         #     self.responseData['modified'] = True
         # return JsonResponse(self.responseData, safe=False)
-
+        self.refreshResponseDate()
         return HttpResponseForbidden('Not Valid Right Now Coming Soon')
 
 
 class registerForWorkshop (AuthenticationAPIView):
     def post(self, request):
-        workshop = models.workshops.objects.all().filter(
-            name=request.POST.get('workshop')).first()
-        form = request.POST.get('form')
-        form = Forms.objects.create(form=form)
-        form.name = f"Form from {self.user.username} to register in {workshop.name}"
+        self.refreshResponseDate()
+        if request.opeartion == 'register':
+            workshop = models.workshops.objects.all().filter(
+                name=request.POST.get('workshop')).first()
+            form = request.POST.get('form')
+            form = Forms.objects.create(form=form)
+            form.name = f"Form from {self.user.username} to register in {workshop.name}"
 
-        userData = user.objects.all().filter(
-            user=self.user).first()  # get the user from the token
-        print(workshop, form, userData)
-        if workshop == None or form == None or userData == None:
-            self.responseData['message'] = 'Invalid Data'
-        else:
-            try:
-                record = models.workshopRegister()
-                record.user = userData
-                record.workshop = workshop
-                record.form = form
-                record.save()
+            userData = user.objects.all().filter(
+                user=self.user).first()  # get the user from the token
+            print(workshop, form, userData)
+            if workshop == None or form == None or userData == None:
+                self.responseData['message'] = 'Invalid Data'
+            else:
+                try:
+                    record = models.workshopRegister()
+                    record.user = userData
+                    record.workshop = workshop
+                    record.form = form
+                    record.save()
+                    self.responseData['message'] = 'Done'
+                except:
+                    self.responseData['message'] = 'You Registered Before'
+        elif request.opeartion == 'unregister':
+            workshop = models.workshops.objects.all().filter(
+                name=request.POST.get('workshop')).first()
+            userData = user.objects.all().filter(
+                user=self.user).first()
+            registeredWorkshop = models.workshopRegister.objects.all().filter(
+                user=userData, workshop=workshop).first()
+            if registeredWorkshop == None:
+                self.responseData['message'] = 'You are not registered in this workshop'
+            else:
+                registeredWorkshop.form.delete()
+                registeredWorkshop.delete()
                 self.responseData['message'] = 'Done'
-            except:
-                self.responseData['message'] = 'You Registered Before'
         return JsonResponse(self.responseData, safe=False)
 
     def get(self, request):
         # here will return a form the user can fill to register in the workshop
+        self.refreshResponseDate()
         form = models.workshops.objects.all().filter(
             name=request.GET['name']).first().form
         self.responseData['messae'] = 'Done'
@@ -117,6 +134,7 @@ class registerForWorkshop (AuthenticationAPIView):
 class top5(DefaultAPIView):
     def get(self, request):
         # here will return the top 5 students in specific workshop
+        self.refreshResponseDate()
         student_taking = models.taking.objects.all().filter(
             workshop=request.GET['workshop']).order_by('-points')[:5]
         students = []
@@ -134,7 +152,6 @@ class top5(DefaultAPIView):
 class acceptWorkshop (View):
     # this made by the admin
     # should be a member or higher to accept user in workshop
-    responseData = {}
 
     def isAccepted(self, user, workshop):
         if (models.taking.objects.all().filter(participant=user, workshop=workshop).first() != None):
@@ -144,6 +161,7 @@ class acceptWorkshop (View):
 
     def get(self, request):
         # here will return the status of the user in the workshop
+        self.refreshResponseDate()
         if request.user != None and request.user.is_authenticated and request.user.is_staff:
             workshop = request.GET.get('workshop')
             username = request.GET.get('user')
@@ -164,6 +182,7 @@ class acceptWorkshop (View):
     def post(self, request):
         # here will make the logic or accepting user in workshop
         if request.user != None and request.user.is_authenticated and request.user.is_staff:
+            self.refreshResponseDate()
             workshop = request.POST.get('workshop')
             username = request.POST.get('user')
             workshop = models.workshops.objects.all().filter(name=workshop).first()
@@ -189,6 +208,7 @@ class instructor (DefaultAPIView):
     def get(self, request):
         # here will return all instructors
         # if an id is given will return all instructors for a specific workshop
+        self.refreshResponseDate()
         instructors = []
         instructing = None
         if (request.GET.get('workshop') != None):
@@ -211,6 +231,7 @@ class instructor (DefaultAPIView):
 
     def post(self, request):
         # here will add an instructor
+        self.refreshResponseDate()
         pass
 
 

@@ -19,6 +19,8 @@ from email.mime.multipart import MIMEMultipart
 import pytz
 from main.mail_template import otpMailTemplate
 from django.utils import timezone
+from rest_framework.response import Response
+from rest_framework import status
 # this custom APIView for classes that
 # i want to handle the expiration of the token i a custom way
 # not just raise Not authentication Exception when it is expired
@@ -26,6 +28,12 @@ from django.utils import timezone
 
 class DefaultAPIView (APIView):
     responseData = {}
+
+    # this function to refresh the response data in each request
+    # it actully used in each request
+    # you can see it in the top of each request function
+    def refreshResponseDate(self):
+        self.responseData = {}
 
 
 class AuthenticationAPIView (DefaultAPIView):
@@ -36,7 +44,7 @@ class AuthenticationAPIView (DefaultAPIView):
         # This to assign an attribute indicates if the token is modified or not
         self.updatedTokenAccess = None
         try:
-            # loads the token data using PyJWS (int JWT library files)
+           # loads the token data using PyJWS (int JWT library files)
             token = request.headers['Authorization'][4:]
             tokenData = PyJWS._load(
                 self, jwt=token)
@@ -89,7 +97,7 @@ class AuthenticationAPIView (DefaultAPIView):
 
 class login (DefaultAPIView):
     def post(self, request):
-        self.responseData = {}
+        self.refreshResponseDate()
         ser = userLoginSerializer(data=request.data)
         if ser.is_valid():
             if len(ser.validated_data) == 0:
@@ -121,6 +129,7 @@ class login (DefaultAPIView):
 
 class logout(AuthenticationAPIView):
     def post(self, request):
+        self.refreshResponseDate()
         self.responseData['message'] = 'done'
         record = BlackListed()
         record.user = self.user
@@ -130,7 +139,7 @@ class logout(AuthenticationAPIView):
 
 class register (DefaultAPIView):
     def post(self, request):
-        self.responseData = {}
+        self.refreshResponseDate()
         # get the data from the request
         ser = userCreationSerializer(data=request.data)
         if ser.is_valid():
@@ -141,6 +150,7 @@ class register (DefaultAPIView):
         return JsonResponse(self.responseData, safe=False)
 
     def get(self, request):
+        self.refreshResponseDate()
         if request.GET['email'] != None and request.GET['username']:
             if User.objects.all().filter(username=request.GET['username']).first() != None:
                 self.responseData['message'] = 'Username Exists'
@@ -166,7 +176,9 @@ class test (AuthenticationAPIView):
 class otp (DefaultAPIView):
     otp_duration_in_minutes = 3
 
-    def post(self, request):  # for sending otp
+    def post(self, request):
+        self.refreshResponseDate()
+        # for sending otp
         # Generate a random base32 secret key
         secret = pyotp.random_base32()
         # Create a TOTP object using the secret key
@@ -203,9 +215,8 @@ class otp (DefaultAPIView):
         return JsonResponse({'message': 'Done get OTP'})
         # getting the email from the request
 
-    def get(self, request):  # for checking otp
-        email = request.GET['email']
-        otp = request.GET['otpToCheck']
+    def checkOtp(self, email, otp):
+        self.refreshResponseDate()
         record = optData.objects.all().filter(email=email).first()
         if record != None:
             currentDate = datetime.datetime.now(pytz.timezone('Africa/Cairo'))
@@ -214,14 +225,46 @@ class otp (DefaultAPIView):
             exipryMinutes = datetime.timedelta(
                 minutes=self.otp_duration_in_minutes)
             if delta > exipryMinutes:
-                return JsonResponse({'message': 'expired OTP Request Another one'})
+                return 'expired OTP Request Another one'
             if record.otp == otp:
                 record.delete()
-                return JsonResponse({'message': 'Done'})
+                return 'Done'
             else:
-                return JsonResponse({'message': 'Wrong OTP'})
+                return 'Wrong OTP'
         else:
-            return JsonResponse({'message': 'Request OTP'})
+            return 'No OTP Requested'
+
+    def get(self, request):  # for checking otp
+        self.refreshResponseDate()
+        try:
+            email = request.GET['email']
+            otp = request.GET['otpToCheck']
+            operation = request.GET['operation']
+            if operation == 'register':
+                response = self.checkOtp(email, otp)
+                if response == 'Done':
+                    self.responseData['message'] = 'Done'
+                else:
+                    self.responseData['message'] = response
+            elif operation == 'forget password':
+                user = User.objects.all().filter(email=email).first()
+                response = self.checkOtp(email, otp)
+                if response == 'Done' and user != None:
+                    self.responseData['message'] = 'Done'
+                    refreshedToken = RefreshToken.for_user(user)
+                    self.responseData['access'] = str(
+                        refreshedToken.access_token)
+                else:
+                    if user == None:
+                        self.responseData['message'] = 'Not Valid Email'
+                    else:
+                        self.responseData['message'] = response
+            else:
+                self.responseData['message'] = 'Not Valid Operation'
+        except Exception as ex:
+            print(ex)
+            return Response("Bad Request", status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(self.responseData, safe=False)
 
 
 class upgrade (AuthenticationAPIView):
@@ -240,6 +283,7 @@ class updateData (AuthenticationAPIView):
             return True
 
     def put(self, request):
+        self.refreshResponseDate()
         if (not self.dataChecker(request.data)):
             self.responseData['message'] = 'Not Valid Data'
         else:
@@ -252,12 +296,10 @@ class updateData (AuthenticationAPIView):
         return JsonResponse(self.responseData, safe=False)
 
 
-class changePass (DefaultAPIView):
-    def perform_authentication(self, request):
-        return None
-
+class changePass (AuthenticationAPIView):
     def put(self, request):
         # get the current password and the new password
+        self.refreshResponseDate()
         currentPassword = request.POST.get('current')
         newPassword = request.POST.get('new')
         if currentPassword == None:
@@ -266,7 +308,6 @@ class changePass (DefaultAPIView):
             user.save()
             self.responseData['message'] = 'Done'
         else:
-            AuthenticationAPIView.perform_authentication(self, request)
             if self.user.check_password(currentPassword):
                 self.user.set_password(newPassword)
                 self.user.save()
@@ -280,6 +321,7 @@ class changePass (DefaultAPIView):
 
 class forget (DefaultAPIView):
     def get(self, request):
+        self.refreshResponseDate()
         username_or_email = request.GET['username_or_email']
         user = User.objects.all().filter(username=username_or_email).first()
         if user == None:
@@ -296,6 +338,7 @@ class imageHandeller (DefaultAPIView):
         return None
 
     def get(self, request):
+        self.refreshResponseDate()
         blocked_images = []
         path = request.GET.get('path')
         if (path == '' or path == None):
@@ -311,6 +354,7 @@ class imageHandeller (DefaultAPIView):
 
 class userHandeler (DefaultAPIView):
     def get(self, request):
+        self.refreshResponseDate()
         username = request.GET['username']
         basicUser = User.objects.all().filter(username=username).first()
         userData = user.objects.all().filter(user=basicUser).first()
@@ -339,6 +383,7 @@ class userHandeler (DefaultAPIView):
 
 class userChecker (AuthenticationAPIView):
     def get(self, request):
+        self.refreshResponseDate()
         if self.user.username == request.GET['username']:
             self.responseData['message'] = 'Yes'
         else:
