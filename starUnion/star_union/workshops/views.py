@@ -94,7 +94,6 @@ class registerForWorkshop (AuthenticationAPIView):
 
             userData = user.objects.all().filter(
                 user=self.user).first()  # get the user from the token
-            print(workshop, form, userData)
             if workshop == None or form == None or userData == None:
                 self.responseData['message'] = 'Invalid Data'
             else:

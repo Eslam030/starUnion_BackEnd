@@ -94,7 +94,6 @@ class AuthenticationAPIView (DefaultAPIView):
                 # if the secret key is not valid
                 # of if the secret key is changed
                 # unauthorize all logged in users
-                print(request.headers['Authorization'][4:])
                 jwt.decode(str(request.headers['Authorization'][4:]).encode('utf-8'),
                            settings.SECRET_KEY, 'HS256')
         except Exception as ex:
@@ -177,7 +176,10 @@ class updateToken (AuthenticationAPIView):
         self.refreshResponseDate()
         if self.updatedTokenAccess != None:
             self.responseData['access'] = self.updatedTokenAccess
-            return JsonResponse(self.responseData, safe=False)
+            self.responseData['modified'] = True
+        else:
+            self.responseData['modified'] = False
+        return JsonResponse(self.responseData, safe=False)
 
 
 class otp (DefaultAPIView):
@@ -269,7 +271,6 @@ class otp (DefaultAPIView):
             else:
                 self.responseData['message'] = 'Not Valid Operation'
         except Exception as ex:
-            print(ex)
             return Response("Bad Request", status=status.HTTP_400_BAD_REQUEST)
         return JsonResponse(self.responseData, safe=False)
 
