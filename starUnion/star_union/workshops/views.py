@@ -84,7 +84,8 @@ class workshop (DefaultAPIView):
 class registerForWorkshop (AuthenticationAPIView):
     def post(self, request):
         self.refreshResponseDate()
-        if request.opeartion == 'register':
+        operation = request.POST.get('operation')
+        if operation == 'register':
             workshop = models.workshops.objects.all().filter(
                 name=request.POST.get('workshop')).first()
             form = request.POST.get('form')
@@ -106,7 +107,7 @@ class registerForWorkshop (AuthenticationAPIView):
                     self.responseData['message'] = 'Done'
                 except:
                     self.responseData['message'] = 'You Registered Before'
-        elif request.opeartion == 'unregister':
+        elif operation == 'unregister':
             workshop = models.workshops.objects.all().filter(
                 name=request.POST.get('workshop')).first()
             userData = user.objects.all().filter(

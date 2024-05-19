@@ -89,6 +89,14 @@ class AuthenticationAPIView (DefaultAPIView):
                     self.updateRefreshToken = str(refreshedToken)
                 else:
                     raise exceptions.NotAuthenticated
+            else:
+                # check the secret key
+                # if the secret key is not valid
+                # of if the secret key is changed
+                # unauthorize all logged in users
+                print(request.headers['Authorization'][4:])
+                jwt.decode(str(request.headers['Authorization'][4:]).encode('utf-8'),
+                           settings.SECRET_KEY, 'HS256')
         except Exception as ex:
             raise exceptions.NotAuthenticated
 
@@ -164,13 +172,12 @@ class register (DefaultAPIView):
     # using user serlializer and form submited
 
 
-class test (AuthenticationAPIView):
-    # permission_classes = [IsAuthenticated]
+class updateToken (AuthenticationAPIView):
     def post(self, request):
+        self.refreshResponseDate()
         if self.updatedTokenAccess != None:
-            return JsonResponse({'message': 'Done', 'access': self.updatedTokenAccess, 'modified': 'done'})
-        else:
-            return JsonResponse({'message': 'Done'})
+            self.responseData['access'] = self.updatedTokenAccess
+            return JsonResponse(self.responseData, safe=False)
 
 
 class otp (DefaultAPIView):
@@ -320,6 +327,8 @@ class changePass (AuthenticationAPIView):
 
 
 class forget (DefaultAPIView):
+    # return the email of the query user
+    # to send otp to the user
     def get(self, request):
         self.refreshResponseDate()
         username_or_email = request.GET['username_or_email']
