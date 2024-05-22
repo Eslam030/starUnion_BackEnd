@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 
+from pathlib import Path
+from django.utils.crypto import get_random_string
 
 # JWT settings
 from datetime import timedelta
@@ -24,17 +25,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-mxep%=)azdcjg%py)%7h31&y9+$(pmbxp$v89ml7()5f#6li8j'
+
+# will activate it when deploying
+chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+SECRET_KEY = get_random_string(50, chars)
+
+# SECRET_KEY = 'django-insecure-mxep%=)azdcjg%py)%7h31&y9+$(pmbxp$v89ml7()5f#6li8j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['starunion.pythonanywhere.com', '127.0.0.1']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'jazzmin',
     'rest_framework',
     'django.contrib.admin',
@@ -50,12 +57,18 @@ INSTALLED_APPS = [
 ]
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Test",
-    "site_logo": "",
-    "site_header": "Test",
-    "site_footer": "Test",
+    "site_title": "Star Union",
+    "site_header": "Star Union",
+    "site_footer": "Star Union",
+    "site_brand": "Star Union",
+    "welcome_sign": "Welcome to Star Union Admin",
+    "copyright": "Star Union",
+    "site_logo": "assets/img/logo.png",
+    "changeform_format": "vertical_tabs",
+    "site_favicon": "assets/img/logo.png",
     "show_ui_builder": True
 }
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -64,26 +77,52 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=20),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=10),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
+
+
+CORS_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
+
+# this will be changed
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:5500',
+    'http://localhost:5173'
+]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 
 ROOT_URLCONF = 'star_union.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'html'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -102,27 +141,30 @@ WSGI_APPLICATION = 'star_union.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
 DATABASES = {
-    "default": {},
+    "default": {
+    },
     "main_db": {
-        "NAME": "main.sqlite3",
+        "NAME": BASE_DIR / 'main_db.sqlite3',
         "ENGINE": "django.db.backends.sqlite3",
     },
     "workshops_db": {
-        "NAME": "workshops.sqlite3",
+        "NAME": BASE_DIR / "workshops.sqlite3",
         "ENGINE": "django.db.backends.sqlite3",
     },
     "events_db": {
-        "NAME": "events.sqlite3",
+        "NAME": BASE_DIR / "events.sqlite3",
         "ENGINE": "django.db.backends.sqlite3",
     }
 }
+# DATABASES['default'] = dj_database_url.parse(
+#     'postgres://teststarunion_user:KYiGJalY8eEZqIJR672AaY6y6SjPjQu7@dpg-cnieso779t8c73brv2ug-a.oregon-postgres.render.com/teststarunion')
 
 # Custom Authentication to our custom user
 AUTHENTICATION_BACKEND = []
 
-DATABASE_ROUTERS = ['star_union.routers.mainRouter',
-                    'star_union.routers.workShopRouter', 'star_union.routers.eventRouter']
+DATABASE_ROUTERS = ['star_union.routers.mainRouter']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -154,7 +196,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Cairo'
 
 USE_I18N = True
 
@@ -164,4 +206,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'frontEnd' / 'dist',
+    BASE_DIR / 'public'
+]
+STATIC_ROOT = BASE_DIR / 'static'
+
+INTERAL_IPS = [
+    'localhost',
+    '127.0.0.1'
+]

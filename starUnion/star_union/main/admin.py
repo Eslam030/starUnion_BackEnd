@@ -1,12 +1,19 @@
 from django.contrib import admin
 from django.apps import apps
+from django.conf import settings
 
-models = []
-models.append(apps.get_app_config('events').get_models())
-models.append(apps.get_app_config('workshops').get_models())
-models.append(apps.get_app_config('main').get_models())
+models = apps.get_app_config('main').get_models()
 
-for app_models in models:
-    for model in app_models:
-        if not admin.site.is_registered(model):
+
+class AdminForms(admin.ModelAdmin):
+
+    change_form_template = str(
+        settings.BASE_DIR / 'main/templates/customForm.html')
+
+
+for model in models:
+    if not admin.site.is_registered(model):
+        if model.__name__ == 'Forms':
+            admin.site.register(model, AdminForms)
+        else:
             admin.site.register(model)

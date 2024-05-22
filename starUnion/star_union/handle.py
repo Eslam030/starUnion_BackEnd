@@ -8,8 +8,7 @@ def migrations():
     commands = [
         'python manage.py makemigrations',
         'python manage.py migrate --database=main_db',
-        'python manage.py migrate --database=workshops_db',
-        'python manage.py migrate --database=events_db',
+
         # Add more commands as needed
     ]
 
@@ -68,4 +67,4 @@ deleteMigrations(
 # put your django env path
 deleteMigrations('C:\\Users\\aba\\Downloads\\env\\Lib\\site-packages\\django')
 
-# migrations()
+migrations()

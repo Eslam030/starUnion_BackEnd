@@ -1,0 +1,60 @@
+<!-- templates/admin/yourapp/modelname/change_form.html -->
+{% extends "admin/change_form.html" %}
+{% load filters %}
+{% load static %}
+{% load jazzmin %}
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        .remove {
+            color: red;
+            font-size: 0.7rem;
+            position: absolute;
+            top: 0.3rem;
+            cursor: pointer;
+            right: 0.3rem;
+        }
+        .remove:hover {
+            color: darkred;
+        }
+        .list-item {
+            border: 0px ;
+            border-radius: 0px;
+            position: relative;
+        }
+        .list-item:hover {
+            background-color: #f0f0f0;
+        }
+        .items-container {
+            border: 1px solid black;
+             border-radius: 1rem;
+              row-gap: 1rem;
+              max-width: 50vw;
+        }
+    </style>
+
+    <!-- Add your custom CSS here -->
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+
+    {{ media }}
+{% endblock %}
+{% block content %}
+    {{ block.super }}
+{% endblock %}
+
+{% block extrajs %}
+{{block.super}}
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script> let change = true; </script>
+    <script type="text/javascript" src = "{% static 'assets/js/form_content.js' %}" > 
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        load_content('Content', '#id_content', '#content-container');
+        load_content('Form', '#id_form', '#form-container' );
+    });
+    </script>
+{% endblock %}
