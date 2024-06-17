@@ -1,10 +1,6 @@
 from django.urls import path
 from .views import *
 
-# finising the urls.py file
-# sync with the doctument
-# test all endpoints locally and on the server (after deployment)
-
 app_name = 'events'
 urlpatterns = [
     path('events/', events.as_view(), name='events'),  # to get or create events

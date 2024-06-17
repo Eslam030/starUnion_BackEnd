@@ -68,7 +68,7 @@ def handle_logo_routing(sender, instance, **kwargs):
 
 @receiver(post_save,  sender=workshops)
 def handle_logo_routing(sender, instance, **kwargs):
-    if instance.logo.name != "":
+    if instance.logo.name != "" and instance.logo.path != None:
         if len(logo) > 0:
             if logo[0] != instance.logo.path:
                 if os.path.exists(logo[0]):

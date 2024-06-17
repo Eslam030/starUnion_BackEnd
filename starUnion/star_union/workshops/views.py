@@ -26,9 +26,9 @@ class workshop (DefaultAPIView):
         taking = {}
         if (request.GET.get('username') != None):
             # handle this
-            user = User.objects.all().filter(username=request.GET.get('username')).first()
+            rawUser = User.objects.all().filter(username=request.GET.get('username')).first()
             starUser = models.user.objects.all().filter(
-                user=user).first()
+                user=rawUser).first()
             workshops_user_taking = models.taking.objects.all().filter(
                 participant=starUser)
             workshops = set()
@@ -52,7 +52,7 @@ class workshop (DefaultAPIView):
         for data in json_workshop_data:
             if data['pk'] in register:
                 data['status'] = 'register'
-            elif data['pk'] in taking:
+            if data['pk'] in taking:
                 data['status'] = 'taking'
         self.responseData['data'] = json_workshop_data
         self.responseData['message'] = 'Done'
@@ -118,6 +118,10 @@ class registerForWorkshop (AuthenticationAPIView):
             else:
                 registeredWorkshop.form.delete()
                 registeredWorkshop.delete()
+                takingWorkshop = models.taking.objects.all().filter(
+                    participant=userData, workshop=workshop).first()
+                if takingWorkshop != None:
+                    takingWorkshop.delete()
                 self.responseData['message'] = 'Done'
         return JsonResponse(self.responseData, safe=False)
 
@@ -185,9 +189,9 @@ class acceptWorkshop (View):
 
     def post(self, request):
         # here will make the logic or accepting user in workshop
-        self.reponseData()
+        self.refreshResponseData()
         if request.user != None and request.user.is_authenticated and request.user.is_staff:
-            self.refreshResponseDate()
+            self.refreshResponseData()
             workshop = request.POST.get('workshop')
             username = request.POST.get('user')
             workshop = models.workshops.objects.all().filter(name=workshop).first()

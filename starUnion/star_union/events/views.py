@@ -4,7 +4,8 @@ from . import models
 from django.core import serializers
 from django.http import JsonResponse
 import json
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden
+from django.contrib.auth.models import User
 
 
 class events (DefaultAPIView):
@@ -18,18 +19,36 @@ class events (DefaultAPIView):
         # and AuthenticationAPIView will need a token to operate
         self.refreshResponseDate()
         events = None
-        if (request.GET.get('id') != None):
+        # order by date descending
+        registered_events = set()
+        if (request.GET.get('username') != None):
+            # get all events for a specific user
+            rawUser = User.objects.all().filter(username=request.GET.get('username')).first()
+            # check if the user is valid
+            if rawUser == None:
+                self.responseData['message'] = 'Not valid username'
+                return JsonResponse(self.responseData, safe=False)
+            starUser = user.objects.all().filter(
+                user=rawUser).first()
             event_user_attending = models.attending.objects.all().filter(
-                user_id=request.GET['id'])
+                user=starUser)
             events = set()
             for event in event_user_attending:
-                events.add(event.event)
-        else:
-            events = models.events.objects.all()
+                registered_events.add(event.event.name)
+        events = models.events.objects.all()
         basicEventData = serializers.serialize('json', events)
         jsonEventData = json.loads(basicEventData)
         for i in range(len(jsonEventData)):
             del jsonEventData[i]['model']
+            if jsonEventData[i]['pk'] in registered_events:
+                jsonEventData[i]['registered'] = True
+        operation = request.GET.get('operation')
+        print(registered_events)
+        if operation == 'get_user_events':
+            for event in jsonEventData:
+                if event['pk'] not in registered_events:
+                    jsonEventData.remove(event)
+
         self.responseData['data'] = jsonEventData
         self.responseData['message'] = 'Done'
         return JsonResponse(self.responseData, safe=False)
@@ -62,19 +81,42 @@ class registerForEvent (AuthenticationAPIView):
         # here will make the logic or registering user with event
         # using the event id and user id
         self.refreshResponseDate()
+        operation = request.POST.get('operation')
         envet = request.POST.get('event')
         event = models.events.objects.all().filter(name=envet).first()
-        if event != None:
-            if event.status != models.events.eventStatus.PAST:
-                record = models.attending()
-                record.user = user.objects.all().filter(user=self.user).first()
-                record.event = event
-                record.save()
-                self.responseData['message'] = 'Done'
-            else:
-                self.responseData['message'] = 'Event is already passed'
-        else:
-            self.responseData['message'] = 'Not valid event id'
+
+        isAllTrue = True
+        # handle the event existance an availability
+
+        if event == None:
+            self.responseData['message'] = 'Not valid event name'
+            isAllTrue = False
+        if event.status == models.events.eventStatus.PAST and isAllTrue:
+            self.responseData['message'] = 'Event is already passed'
+            isAllTrue = False
+        if isAllTrue:
+            if operation == 'register':
+                # register the user in the event
+                # but first check if the user is already registered
+                currentUser = user.objects.all().filter(user=self.user).first()
+                check = models.attending.objects.all().filter(
+                    event=event, user=currentUser).first()
+                if check != None:
+                    self.responseData['message'] = 'Already registered in this event'
+                else:
+                    record = models.attending()
+                    record.user = user.objects.all().filter(user=self.user).first()
+                    record.event = event
+                    record.save()
+                    self.responseData['message'] = 'Done'
+            elif operation == 'unregister':
+                record = models.attending.objects.all().filter(event=event).filter(
+                    user=user.objects.all().filter(user=self.user).first()).first()
+                if record != None:
+                    record.delete()
+                    self.responseData['message'] = 'Done'
+                else:
+                    self.responseData['message'] = 'Not registered in this event'
         return JsonResponse(self.responseData, safe=False)
 
 
