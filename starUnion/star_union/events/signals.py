@@ -92,7 +92,7 @@ def handle_logo_routing(sender, instance, **kwargs):
 @receiver(post_save)
 def handle_logo_routing(sender, instance, **kwargs):
     if sender == events or sender == sponsors or sender == partnrships:
-        if instance.logo.name != "":
+        if instance.logo.name != None and instance.logo.name != "":
             if len(logo) > 0:
                 if logo[0] != instance.logo.path:
                     if os.path.exists(logo[0]):
@@ -102,7 +102,6 @@ def handle_logo_routing(sender, instance, **kwargs):
                 ("events/Every" + name_for_path +
                  "Data/" + instance.name + "/logos/")
             if not os.path.exists(new_path):
-
                 os.makedirs(new_path)
             logo_path = str(instance.logo.path).replace("/", "\\")
             new_path = new_path / logo_path.split("\\")[-1]

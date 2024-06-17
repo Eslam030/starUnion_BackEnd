@@ -27,10 +27,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # will activate it when deploying
-chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-SECRET_KEY = get_random_string(50, chars)
+# chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+# SECRET_KEY = get_random_string(50, chars)
 
-# SECRET_KEY = 'django-insecure-mxep%=)azdcjg%py)%7h31&y9+$(pmbxp$v89ml7()5f#6li8j'
+SECRET_KEY = 'django-insecure-mxep%=)azdcjg%py)%7h31&y9+$(pmbxp$v89ml7()5f#6li8j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -115,7 +115,6 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-
 
 ROOT_URLCONF = 'star_union.urls'
 

@@ -71,6 +71,15 @@ class AuthenticationAPIView (DefaultAPIView):
                 # and send back the access key to client side
                 # get the user id to check if the user is actually exist
                 if self.user != None:
+                    # check if the secret key is changed
+                    # if the secret key is changed
+                    # all the tokens will be invalid
+                    try:
+                        jwt.decode(str(request.headers['Authorization'][4:]).encode('utf-8'),
+                                   settings.SECRET_KEY, 'HS256')
+                    except Exception as ex:
+                        if str(ex) == 'Signature verification failed':
+                            raise exceptions.NotAuthenticated
                     # if the user credentials are true
                     # just refresh user token again
                     refreshedToken = RefreshToken.for_user(self.user)
@@ -81,7 +90,6 @@ class AuthenticationAPIView (DefaultAPIView):
 
                         refresh_token.token = refreshedToken
                         refresh_token.save()
-
                     else:
                         refresh_token.objects.create(
                             user=self.user, token=refreshedToken)
@@ -98,8 +106,6 @@ class AuthenticationAPIView (DefaultAPIView):
                            settings.SECRET_KEY, 'HS256')
         except Exception as ex:
             raise exceptions.NotAuthenticated
-
-# done
 
 
 class login (DefaultAPIView):

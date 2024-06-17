@@ -1,5 +1,6 @@
 import subprocess
 import os
+from pathlib import Path
 import shutil
 # Define the list of management commands to run
 
@@ -60,11 +61,12 @@ def deleteMigrations(directory):
             deleteMigrations(directory + "\\" + folder)
 
 
+base_path = Path(__file__).resolve().parent.parent / 'star_union'
+base_path = str(base_path).replace('\\', '\\\\')
 # put your django project
-deleteMigrations(
-    'C:\\Users\\aba\\Downloads\\starUnionWorking\\starUnion_BackEnd\\starUnion\\star_union')
+deleteMigrations(base_path)
 
-# put your django env path
+# # put your django env path
 deleteMigrations('C:\\Users\\aba\\Downloads\\env\\Lib\\site-packages\\django')
 
 migrations()
