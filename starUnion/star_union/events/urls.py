@@ -13,5 +13,6 @@ urlpatterns = [
     path('addeventsponsor/', sponsorsEvents.as_view(),
          name='addeventsponsor'),  # to add sponsors to events
     path('addpartenersponsor/', partnerSponsoringEvents.as_view(),  # to add parteners as a sponsor to events
-         name='addpartenersponsor')
+         name='addpartenersponsor') , # to register a user for a special event
+     path('checkroute' , Routes.as_view() , name='checkroute') # to check the route of the user
 ]

@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+import time
 
 
 class EventsConfig(AppConfig):
@@ -8,3 +9,6 @@ class EventsConfig(AppConfig):
     def ready(self) -> None:
         import events.signals
         import events.serializer
+        import events.tasks
+        from events.tasks import background_task
+        # background_task()
