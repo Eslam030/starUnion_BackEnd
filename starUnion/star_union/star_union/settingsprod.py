@@ -38,7 +38,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['starunion.pythonanywhere.com', '127.0.0.1']
+ALLOWED_HOSTS = ['starunion.pythonanywhere.com', '127.0.0.1' , 'starunion.tech']
 
 
 # Application definition
