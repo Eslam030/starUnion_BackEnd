@@ -1,11 +1,13 @@
 from main.views import DefaultAPIView, AuthenticationAPIView
 from main.models import user  # will be needed in the comming deliveries
 from . import models
+from .serializer import specialEventRegisterSerializer
 from django.core import serializers
 from django.http import JsonResponse
 import json
 from django.http import HttpResponseForbidden
 from django.contrib.auth.models import User
+from django.http.request import QueryDict
 
 
 class events (DefaultAPIView):
@@ -35,7 +37,10 @@ class events (DefaultAPIView):
             events = set()
             for event in event_user_attending:
                 registered_events.add(event.event.name)
-        events = models.events.objects.all()
+
+        # sort the events by date descending
+        events = models.events.objects.all().order_by('-date')
+        special_events = models.special_events.objects.all().order_by('-date')
         basicEventData = serializers.serialize('json', events)
         jsonEventData = json.loads(basicEventData)
         for i in range(len(jsonEventData)):
@@ -43,11 +48,17 @@ class events (DefaultAPIView):
             if jsonEventData[i]['pk'] in registered_events:
                 jsonEventData[i]['registered'] = True
         operation = request.GET.get('operation')
-        print(registered_events)
         if operation == 'get_user_events':
             for event in jsonEventData:
                 if event['pk'] not in registered_events:
                     jsonEventData.remove(event)
+
+        # if event is special event make it special
+        for i in range(len(jsonEventData)):
+            if special_events.filter(name=jsonEventData[i]['pk']).first() != None:
+                jsonEventData[i]['special'] = True
+                jsonEventData[i]['company'] = special_events.filter(
+                    name=jsonEventData[i]['pk']).first().company.name
 
         self.responseData['data'] = jsonEventData
         self.responseData['message'] = 'Done'
@@ -76,11 +87,30 @@ class events (DefaultAPIView):
         return HttpResponseForbidden('Not Valid Right Now Coming Soon')
 
 
-class registerForEvent (AuthenticationAPIView):
-    def post(self, request):
-        # here will make the logic or registering user with event
+class registerForEvent (DefaultAPIView):
+
+    def perform_authentication(self, request):
+        return None
+
+    def regirst_special_event(self, request):
+        # here will make the logic or registering user with special event
         # using the event id and user id
         self.refreshResponseDate()
+        event_name = request.POST.get('event')
+        special_event = models.special_events.objects.all().filter(name=event_name).first()
+        if special_event == None:
+            self.responseData['message'] = 'Not valid event name'
+        else:
+            ser = specialEventRegisterSerializer(data=json.loads(request.data['data']))
+            if ser.is_valid():
+                ser.save(event_name)
+
+        return JsonResponse(self.responseData, safe=False)
+
+    def register_normal_event(self, request):
+        # here will make the logic or registering user with event
+        # using the event id and user id
+        AuthenticationAPIView.perform_authentication(self, request)
         operation = request.POST.get('operation')
         envet = request.POST.get('event')
         event = models.events.objects.all().filter(name=envet).first()
@@ -117,6 +147,35 @@ class registerForEvent (AuthenticationAPIView):
                     self.responseData['message'] = 'Done'
                 else:
                     self.responseData['message'] = 'Not registered in this event'
+        return JsonResponse(self.responseData, safe=False)
+
+    def post(self, request):
+        # here will make the logic or registering user with event
+        # using the event id and user id
+        self.refreshResponseDate()
+        spcial = request.POST.get('special')
+        if spcial == 'true':
+            return self.regirst_special_event(request)
+        else:
+            return self.register_normal_event(request)
+
+
+class Routes (DefaultAPIView):
+    def get(self, request):
+        event_name = request.GET.get('event')
+        comapny_name = request.GET.get('company')
+        if event_name == None or comapny_name == None:
+            self.responseData['message'] = 'Not valid event or company name'
+        else:
+            company = models.company.objects.all().filter(name=comapny_name).first()
+            if company == None:
+                self.responseData['message'] = 'Not valid company name'
+            else:
+                event = models.special_events.objects.all().filter(name=event_name).first()
+                if event == None:
+                    self.responseData['message'] = 'Not valid event name'
+                else:
+                    self.responseData['message'] = 'Done'
         return JsonResponse(self.responseData, safe=False)
 
 

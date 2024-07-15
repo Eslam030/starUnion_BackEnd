@@ -1,8 +1,8 @@
 from django.db import models
-from main.models import user
+from main.models import user, anonymous_user
 from django.conf import settings
 from django import forms
-import os
+from django.conf import settings
 
 
 # how photos will be stored ??
@@ -10,14 +10,21 @@ import os
 # we will at first store photo in temp_photos folder
 # then after save will be replaced to the right folder
 class photos (models.Model):
-    photo = models.ImageField(upload_to="events/temp_photos")
+    class Meta:
+        verbose_name = 'Photo'
+        verbose_name_plural = 'Photos'
+    photo = models.ImageField(upload_to=settings.BASE_DIR / "events" / "temp_photos")
 
     def __str__(self) -> str:
         return str(self.photo.path).split("\\")[-1]
 
 
 class events (models.Model):
+    class Meta:
+        verbose_name = 'Event'
+        verbose_name_plural = 'Events'
     # Define the main events status that will be used
+
     class eventStatus (models.TextChoices):
         PAST = "PA"
         CurrentWorking = 'CW'
@@ -30,13 +37,50 @@ class events (models.Model):
     location = models.CharField(max_length=512)
     logo = models.ImageField(blank=True, null=True)
     event_photos = models.ManyToManyField(photos,  blank=True)
-    description = models.TextField()
+    description = models.TextField(blank=True, default='')
 
     def __str__(self) -> str:
         return self.name
 
 
+class company (models.Model):
+    class Meta:
+        verbose_name = 'Company'
+        verbose_name_plural = 'Companies'
+    name = models.CharField(max_length=50, primary_key=True)
+    mail = models.EmailField()
+    logo = models.ImageField(blank=True, default='',
+                             upload_to= settings.BASE_DIR / 'events' /' company_logos')
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class special_events (events):
+    class Meta:
+        verbose_name = 'Special Event'
+        verbose_name_plural = 'Special Events'
+    company = models.ForeignKey(company, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.name + " __ " + self.company.name
+
+
+class special_events_data (models.Model):
+    class Meta:
+        verbose_name = 'Special Event Data'
+        verbose_name_plural = 'Special Events Data'
+    event = models.ForeignKey(special_events, on_delete=models.CASCADE)
+    user = models.OneToOneField(anonymous_user, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.event.name + " __ " + self.user.first_name + " " + self.user.last_name
+
+
 class sponsors (models.Model):
+    class Meta:
+        verbose_name = 'Sponsor'
+        verbose_name_plural = 'Sponsors'
     name = models.CharField(max_length=50, primary_key=True)
     mail = models.EmailField()
     logo = models.ImageField(blank=True)
@@ -47,6 +91,9 @@ class sponsors (models.Model):
 
 
 class partnrships (models.Model):
+    class Meta:
+        verbose_name = 'Partnership'
+        verbose_name_plural = 'Partnerships'
     name = models.CharField(max_length=50, primary_key=True)
     mail = models.EmailField()
     logo = models.ImageField(blank=True)
@@ -79,6 +126,8 @@ class attending (models.Model):
         return "Event : " + self.event.name + " __ attendee : " + self.user.user.username
 
     class Meta:
+        verbose_name = 'Attending'
+        verbose_name_plural = 'Attendings'
         constraints = [
             models.UniqueConstraint(
                 fields=['event', 'user'], name='composite_event_attendee_pk')
@@ -86,6 +135,7 @@ class attending (models.Model):
 
 
 class sponsoring (models.Model):
+
     event = models.ForeignKey(events, on_delete=models.CASCADE)
     sponsor = models.ForeignKey(sponsors, on_delete=models.CASCADE)
 
@@ -93,6 +143,8 @@ class sponsoring (models.Model):
         return "Event : " + self.event.name + " __ Sponsor : " + self.sponsor.name
 
     class Meta:
+        verbose_name = 'Sponsoring'
+        verbose_name_plural = 'Sponsorings'
         constraints = [
             models.UniqueConstraint(
                 fields=['event', 'sponsor'], name='composite_event_sponsor_pk')
@@ -107,6 +159,8 @@ class partnerSponsoring (models.Model):
         return "Event : " + self.event.name + " __ Partner : " + self.partner.name
 
     class Meta:
+        verbose_name = 'Partner Sponsoring'
+        verbose_name_plural = 'Partner Sponsorings'
         constraints = [
             models.UniqueConstraint(
                 fields=['event', 'partner'], name='composite_event_sponsor_partener_pk')

@@ -122,8 +122,6 @@ class login (DefaultAPIView):
                     black.delete()
                 self.responseData['message'] = 'done'
                 self.responseData['access'] = ser.validated_data.get('access')
-                self.responseData['refrest'] = ser.validated_data.get(
-                    'refresh')
                 self.responseData['user'] = ser.validated_data.get(
                     'user').username
                 refresh_token = user_refresh_token.objects.all().filter(
@@ -200,7 +198,7 @@ class otp (DefaultAPIView):
         totp = pyotp.TOTP(secret)
         # Generate an OTP
         otp = totp.now()
-        senderEmail = 'esla889900@gmail.com'
+        senderEmail = 'star.union.team.2023@gmail.com'
         receverEmail = request.POST['email']
         message = MIMEMultipart()
         message["From"] = senderEmail
@@ -213,7 +211,7 @@ class otp (DefaultAPIView):
         message.attach(MIMEText(body, "html"))
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()  # Secure the connection
-            server.login(senderEmail, "zzzg qfzc cszc fqhw")
+            server.login(senderEmail, "adzf fxju htsg bxyu")
             text = message.as_string()
             server.sendmail(senderEmail,
                             receverEmail, text)
@@ -371,28 +369,32 @@ class imageHandeller (DefaultAPIView):
 class userHandeler (DefaultAPIView):
     def get(self, request):
         self.refreshResponseDate()
-        username = request.GET['username']
+        username = request.GET('username')
         basicUser = User.objects.all().filter(username=username).first()
         userData = user.objects.all().filter(user=basicUser).first()
-        crewData = crew.objects.all().filter(member=userData).first()
-        userDict = {
-            'first_name': userData.user.first_name,
-            'last_name': userData.user.last_name,
-            'email': userData.user.email,
-            'phone': userData.phone,
-            'university': userData.university,
-            'collage': userData.collage,
-            'level': userData.level,
-            'photo': userData.photo.photo.name,
-            'gender': userData.gen,
-        }
-        if crewData != None:
-            userDict['position'] = crewData.role
-            userDict['rate'] = crewData.rate
+        if userData != None:
+            crewData = crew.objects.all().filter(member=userData).first()
+            userDict = {
+                'first_name': userData.user.first_name,
+                'last_name': userData.user.last_name,
+                'email': userData.user.email,
+                'phone': userData.phone,
+                'university': userData.university,
+                'collage': userData.collage,
+                'level': userData.level,
+                'photo': userData.photo.photo.name,
+                'gender': userData.gen,
+            }
+            if crewData != None:
+                userDict['position'] = crewData.role
+                userDict['rate'] = crewData.rate
+            else:
+                userDict['position'] = 'Participant'
+            self.responseData['message'] = 'Done'
+            self.responseData['user'] = userDict
         else:
-            userDict['position'] = 'Participant'
-        self.responseData['message'] = 'Done'
-        self.responseData['user'] = userDict
+            self.responseData['message'] = 'Not Valid User'
+            return JsonResponse(self.responseData, safe=False)
 
         return JsonResponse(self.responseData, safe=False)
 
