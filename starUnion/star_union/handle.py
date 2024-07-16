@@ -69,4 +69,4 @@ deleteMigrations(base_path)
 # # put your django env path
 deleteMigrations('C:\\Users\\aba\\Downloads\\env\\Lib\\site-packages\\django')
 
-migrations()
+#migrations()
