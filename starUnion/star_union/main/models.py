@@ -5,10 +5,12 @@ from django.conf import settings
 
 
 class user_profile_images (models.Model):
-    photo = models.ImageField(upload_to= settings.BASE_DIR / 'main/user_profile_images')
+    photo = models.ImageField()
 
     def __str__(self) -> str:
-        return str(self.photo).split("/")[-1]
+        wanted_photo = str(self.photo).replace("\\" , "/")
+        return wanted_photo.split("/")[-1]
+    
 
 
 class user (models.Model):

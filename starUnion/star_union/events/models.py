@@ -13,7 +13,8 @@ class photos (models.Model):
     class Meta:
         verbose_name = 'Photo'
         verbose_name_plural = 'Photos'
-    photo = models.ImageField(upload_to=settings.BASE_DIR / "events" / "temp_photos")
+    photo = models.ImageField(
+        upload_to=settings.BASE_DIR / "events" / "temp_photos")
 
     def __str__(self) -> str:
         return str(self.photo.path).split("\\")[-1]
@@ -49,8 +50,7 @@ class company (models.Model):
         verbose_name_plural = 'Companies'
     name = models.CharField(max_length=50, primary_key=True)
     mail = models.EmailField()
-    logo = models.ImageField(blank=True, default='',
-                             upload_to= settings.BASE_DIR / 'events' /' company_logos')
+    logo = models.ImageField(blank=True, default='')
 
     def __str__(self) -> str:
         return self.name

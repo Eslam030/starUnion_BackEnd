@@ -369,7 +369,7 @@ class imageHandeller (DefaultAPIView):
 class userHandeler (DefaultAPIView):
     def get(self, request):
         self.refreshResponseDate()
-        username = request.GET('username')
+        username = request.GET.get('username')
         basicUser = User.objects.all().filter(username=username).first()
         userData = user.objects.all().filter(user=basicUser).first()
         if userData != None:
@@ -402,7 +402,7 @@ class userHandeler (DefaultAPIView):
 class userChecker (AuthenticationAPIView):
     def get(self, request):
         self.refreshResponseDate()
-        if self.user.username == request.GET['username']:
+        if self.user.username == request.GET.get('username'):
             self.responseData['message'] = 'Yes'
         else:
             self.responseData['message'] = 'No'
