@@ -4,7 +4,7 @@ from django import forms
 
 
 class photos (models.Model):
-    photo = models.ImageField(upload_to="workshops\\photos")
+    photo = models.ImageField(upload_to="workshops\\photos" , max_length=500)
 
     def __str__(self):
         return self.photo.name.split("\\")[-1]
@@ -26,7 +26,7 @@ class workshops (models.Model):
     status = models.CharField(max_length=2, choices=workshopStatus.choices)
     # location is saved as the embbaded google maps link
     location = models.CharField(max_length=512)
-    logo = models.ImageField(blank=True)
+    logo = models.ImageField(blank=True , max_length=500)
     workshop_photos = models.ManyToManyField(photos,  blank=True)
     content = models.JSONField()
     form = models.JSONField()

@@ -14,7 +14,7 @@ class photos (models.Model):
         verbose_name = 'Photo'
         verbose_name_plural = 'Photos'
     photo = models.ImageField(
-        upload_to=settings.BASE_DIR / "events" / "temp_photos")
+        upload_to=settings.BASE_DIR / "events" / "temp_photos" , max_length=500)
 
     def __str__(self) -> str:
         return str(self.photo.path).split("\\")[-1]
@@ -36,7 +36,7 @@ class events (models.Model):
     status = models.CharField(max_length=2, choices=eventStatus.choices)
     # location is saved as the embbaded google maps link
     location = models.CharField(max_length=512)
-    logo = models.ImageField(blank=True, null=True)
+    logo = models.ImageField(blank=True, null=True , max_length=500)
     event_photos = models.ManyToManyField(photos,  blank=True)
     description = models.TextField(blank=True, default='')
 
@@ -50,7 +50,7 @@ class company (models.Model):
         verbose_name_plural = 'Companies'
     name = models.CharField(max_length=50, primary_key=True)
     mail = models.EmailField()
-    logo = models.ImageField(blank=True, default='')
+    logo = models.ImageField(blank=True, default='' ,max_length=500)
 
     def __str__(self) -> str:
         return self.name
@@ -83,7 +83,7 @@ class sponsors (models.Model):
         verbose_name_plural = 'Sponsors'
     name = models.CharField(max_length=50, primary_key=True)
     mail = models.EmailField()
-    logo = models.ImageField(blank=True)
+    logo = models.ImageField(blank=True , max_length=500)
     deposit = models.FloatField()
 
     def __str__(self) -> str:
@@ -96,7 +96,7 @@ class partnrships (models.Model):
         verbose_name_plural = 'Partnerships'
     name = models.CharField(max_length=50, primary_key=True)
     mail = models.EmailField()
-    logo = models.ImageField(blank=True)
+    logo = models.ImageField(blank=True , max_length=500)
     start_date = models.DateField()
     end_date = models.DateField()
     deposit = models.FloatField()
