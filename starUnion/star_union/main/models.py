@@ -5,7 +5,7 @@ from django.conf import settings
 
 
 class user_profile_images (models.Model):
-    photo = models.ImageField()
+    photo = models.ImageField(max_length=500)
 
     def __str__(self) -> str:
         wanted_photo = str(self.photo).replace("\\" , "/")
