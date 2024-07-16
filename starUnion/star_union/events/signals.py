@@ -83,7 +83,7 @@ def handle_photos_files(sender, instance, **kwargs):
 
 @receiver(pre_save)
 def handle_logo_routing(sender, instance, **kwargs):
-    if sender == events:
+    if sender == events or sender == company:
         log = events.objects.filter(name=instance.name).first()
         if log != None and log.logo.name != "":
             logo.append(log.logo.path)
@@ -91,13 +91,16 @@ def handle_logo_routing(sender, instance, **kwargs):
 
 @receiver(post_save)
 def handle_logo_routing(sender, instance, **kwargs):
-    if sender == events or sender == sponsors or sender == partnrships:
+    if sender == events or sender == sponsors or sender == partnrships or sender == company:
         if instance.logo.name != None and instance.logo.name != "":
             if len(logo) > 0:
                 if logo[0] != instance.logo.path:
                     if os.path.exists(logo[0]):
                         os.remove(logo[0])
             name_for_path = sender.__name__[0].upper() + sender.__name__[1:-1]
+            if sender == company :
+                name_for_path = "Company"
+                
             new_path = settings.BASE_DIR / \
                 ("events/Every" + name_for_path +
                  "Data/" + instance.name + "/logos/")
