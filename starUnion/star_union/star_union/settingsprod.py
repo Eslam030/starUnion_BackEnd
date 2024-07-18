@@ -39,7 +39,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['starunion.pythonanywhere.com',
-                 '127.0.0.1', 'starunion.tech', 'https://api.starunion.tech']
+                 '127.0.0.1', 'api.starunion.tech']
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
