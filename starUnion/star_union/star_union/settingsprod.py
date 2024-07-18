@@ -39,11 +39,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['starunion.pythonanywhere.com',
-                 '127.0.0.1', 'starunion.tech', 'https://starunion.tech']
+                 '127.0.0.1', 'starunion.tech', 'https://api.starunion.tech']
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://starunion.tech']
+CSRF_TRUSTED_ORIGINS = ['https://api.starunion.tech']
 
 
 # Application definition
@@ -113,7 +113,8 @@ CORS_ALLOW_CREDENTIALS = True
 # this will be changed
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5500',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'https://starunion.tech'
 ]
 CORS_ALLOW_METHODS = [
     'DELETE',
