@@ -37,7 +37,6 @@ class userCreationSerializer (serializers.Serializer):
     university = serializers.CharField()
     collage = serializers.CharField()
     level = serializers.IntegerField()
-    photo = serializers.CharField()
 
     def create(self, validated_data):
         if User.objects.all().filter(username=validated_data['username']).first() is not None:
@@ -65,7 +64,7 @@ class userCreationSerializer (serializers.Serializer):
             level=validated_data['level'],
         )
         user.photo = user_profile_images.objects.all().filter(
-            id=validated_data['photo']).first()
+            photo__contains=f'{validated_data['gender'].lower().capitalize()}.png').first()
         user.gen = gender_creator(validated_data['gender']).get()
         user.save()
         return {
@@ -97,7 +96,7 @@ class userUpdateSerializer (serializers.Serializer):
         instance.collage = validated_data.get('collage')
         instance.level = validated_data.get('level')
         instance.photo = user_profile_images.objects.all().filter(
-            id=validated_data['photo']).first()
+            photo_contains=validated_data['photo']).first()
         instance.save()
         return {
             'message': 'Done',

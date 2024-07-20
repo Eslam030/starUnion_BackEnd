@@ -355,6 +355,7 @@ class imageHandeller (DefaultAPIView):
         self.refreshResponseDate()
         blocked_images = []
         path = request.GET.get('path')
+        print(path )
         if (path == '' or path == None):
             return HttpResponse('')
         else:
