@@ -7,6 +7,7 @@ from django.core import serializers
 import json
 from django.contrib.auth.models import User
 from django.views import View
+from django.db.models.query import QuerySet
 
 # Create your views here.
 
@@ -45,6 +46,15 @@ class workshop (DefaultAPIView):
                 name=request.GET['workshop'])
         else:
             workshops = models.workshops.objects.all()
+        # convert workshops from set to queryset
+
+        if isinstance(workshops, set):
+            temp_workshops = workshops
+            all_workshops = models.workshops.objects.all()
+            workshops = models.workshops.objects.none()
+            for workshop in temp_workshops:
+                workshops |= all_workshops.filter(name=workshop.name)
+
         workshops = workshops.order_by('-start_date')
         basic_workshopt_data = serializers.serialize('json', workshops)
         json_workshop_data = json.loads(basic_workshopt_data)
