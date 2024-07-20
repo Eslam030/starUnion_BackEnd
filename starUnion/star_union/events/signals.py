@@ -89,9 +89,10 @@ def handle_logo_routing(sender, instance, **kwargs):
             logo.append(log.logo.path)
 
 
+models_with_logos = [events, sponsors, partnrships, company, special_events]
 @receiver(post_save)
 def handle_logo_routing(sender, instance, **kwargs):
-    if sender == events or sender == sponsors or sender == partnrships or sender == company:
+    if sender in models_with_logos:
         if instance.logo.name != None and instance.logo.name != "":
             if len(logo) > 0:
                 if logo[0] != instance.logo.path:
@@ -100,6 +101,8 @@ def handle_logo_routing(sender, instance, **kwargs):
             name_for_path = sender.__name__[0].upper() + sender.__name__[1:-1]
             if sender == company :
                 name_for_path = "Company"
+            if sender == special_events: 
+                name_for_path = "Event"
                 
             new_path = settings.BASE_DIR / \
                 ("events/Every" + name_for_path +

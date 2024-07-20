@@ -30,3 +30,34 @@ class otpMailTemplate:
                 </body>
             </html>
         """
+
+
+class qrMailTemplateForEvent:
+    def __init__(self, event):
+        self.event = event
+
+    def getTemplate(self):
+        return f"""
+                <html>
+                <head>
+                    <title>Qr for attending {self.event}</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; ">
+                    <center>
+                        <!-- QR -->
+                        <div style="text-align: center;">
+                            <img src="cid:image1" alt="Your Logo" style="max-width: 13vw;
+                            filter: drop-shadow(0 0 0.5rem #13022d); ">
+                        </div>
+
+                        <!-- Main Content -->
+                        <div style=" font-size: 1rem; font-weight: bold; margin-top:1rem">
+                            <!-- Confirmation Button -->
+                            <div style="text-align: center; color : rgba(97, 56, 209, 1)">
+                                <p >Your Qr Code is attached</p>
+                            </div>
+                        </div>
+                    </center>
+                </body>
+            </html>
+        """

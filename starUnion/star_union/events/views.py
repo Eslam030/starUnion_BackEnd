@@ -7,7 +7,11 @@ from django.http import JsonResponse
 import json
 from django.http import HttpResponseForbidden
 from django.contrib.auth.models import User
-from django.http.request import QueryDict
+from .QrCode import qr_code
+from main.views import mail_with_image
+from main.mail_template import qrMailTemplateForEvent
+from django.conf import settings
+import os
 
 
 class events (DefaultAPIView):
@@ -92,6 +96,19 @@ class registerForEvent (DefaultAPIView):
     def perform_authentication(self, request):
         return None
 
+    def make_qr(self, mail, event_logo_path):
+        if not os.path.exists(settings.BASE_DIR / 'events' / 'qr_codes'):
+            os.makedirs(settings.BASE_DIR / 'events' / 'qr_codes')
+        qr_code(
+            data=mail,
+            inner_eye_color=(0, 0, 0),
+            outer_eye_color=(73, 44, 156),
+            logo=event_logo_path,
+            logo_rounded=True
+        ).generate_qr_code().save(
+            settings.BASE_DIR / 'events' / 'qr_codes' / f'{mail}.png'
+        )
+
     def regirst_special_event(self, request):
         # here will make the logic or registering user with special event
         # using the event id and user id
@@ -101,9 +118,28 @@ class registerForEvent (DefaultAPIView):
         if special_event == None:
             self.responseData['message'] = 'Not valid event name'
         else:
-            ser = specialEventRegisterSerializer(data=json.loads(request.data['data']))
+            ser = specialEventRegisterSerializer(
+                data=json.loads(request.data['data']))
             if ser.is_valid():
                 ser.save(event_name)
+                self.responseData['message'] = 'Done'
+
+                self.make_qr(
+                    ser.validated_data['email'], special_event.logo.path)
+                
+                mail_with_image(
+                    sender='star.union.team.2023@gmail.com',
+                    recever=ser.validated_data['email'],
+                    subject=f'{special_event.name} Qr For Registration',
+                    body=qrMailTemplateForEvent(
+                        event=special_event.name,
+                    ).getTemplate(),
+                    images=[str(settings.BASE_DIR / 'events' /
+                                'qr_codes' / f'{ser.validated_data["email"]}.png')]
+                ).send_mail()
+
+                os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
+                          f'{ser.validated_data["email"]}.png')
 
         return JsonResponse(self.responseData, safe=False)
 

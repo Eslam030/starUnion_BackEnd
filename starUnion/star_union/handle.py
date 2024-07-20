@@ -88,6 +88,7 @@ if (len(sys.argv) > 1):
         handle_photos_files()
         deleteMigrations(base_path)
 else :
+    handle_photos_files()
     deleteMigrations(base_path)
     # # put your django env path
     deleteMigrations('C:\\Users\\aba\\Downloads\\env\\Lib\\site-packages\\django')
