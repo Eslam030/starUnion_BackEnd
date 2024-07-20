@@ -100,6 +100,7 @@ class userUpdateSerializer (serializers.Serializer):
         instance.save()
         return {
             'message': 'Done',
+            'user': instance
         }
 
 
