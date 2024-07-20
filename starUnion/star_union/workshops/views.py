@@ -45,6 +45,7 @@ class workshop (DefaultAPIView):
                 name=request.GET['workshop'])
         else:
             workshops = models.workshops.objects.all()
+        workshops = workshops.order_by('-start_date')
         basic_workshopt_data = serializers.serialize('json', workshops)
         json_workshop_data = json.loads(basic_workshopt_data)
         for i in range(len(json_workshop_data)):
