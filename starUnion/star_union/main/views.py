@@ -16,6 +16,7 @@ import pyotp
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 import pytz
 from main.mail_template import otpMailTemplate
 from django.utils import timezone
@@ -186,6 +187,57 @@ class updateToken (AuthenticationAPIView):
         return JsonResponse(self.responseData, safe=False)
 
 
+class mail:
+    def __init__(self, sender, recever, subject, body):
+        self.sender = sender
+        self.recever = recever
+        self.subject = subject
+        self.body = body
+
+    def prepare_mail(self):
+        message = MIMEMultipart()
+        message["From"] = self.sender
+        message["To"] = self.recever
+        message["Subject"] = self.subject
+        message.attach(MIMEText(self.body, "html"))
+        return message
+
+    def send_mail(self):
+        message = self.prepare_mail()
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(self.sender, "adzf fxju htsg bxyu")
+            text = message.as_string()
+            server.sendmail(self.sender,
+                            self.recever, text)
+
+
+class mail_with_image (mail):
+    def __init__(self, sender, recever, subject, body, images):
+        super().__init__(sender, recever, subject, body)
+        self.images = images
+
+    def add_images (self, message):
+        count = 1
+        for image in self.images:
+            with open(image, 'rb') as f:
+                image = f.read()
+                mail_image = MIMEImage(image)
+                mail_image.add_header('Content-ID', f'<image{count}>')
+                message.attach(mail_image)
+                count += 1
+        return message
+    def send_mail(self):
+        message = self.prepare_mail()
+        message = self.add_images(message)
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(self.sender, "adzf fxju htsg bxyu")
+            text = message.as_string()
+            server.sendmail(self.sender,
+                            self.recever, text)
+
+
 class otp (DefaultAPIView):
     otp_duration_in_minutes = 3
 
@@ -198,30 +250,20 @@ class otp (DefaultAPIView):
         totp = pyotp.TOTP(secret)
         # Generate an OTP
         otp = totp.now()
-        senderEmail = 'star.union.team.2023@gmail.com'
-        receverEmail = request.POST['email']
-        message = MIMEMultipart()
-        message["From"] = senderEmail
-        message["To"] = receverEmail
-        message["Subject"] = "Star Union OTP For Registration"
-        # will here attach the logo after we deploy the server
 
-        body = otpMailTemplate(
-            otp, "https://starunion.pythonanywhere.com/main/getImage/?path=star_union/assets/logo.png").getTemplate()
-        message.attach(MIMEText(body, "html"))
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()  # Secure the connection
-            server.login(senderEmail, "adzf fxju htsg bxyu")
-            text = message.as_string()
-            server.sendmail(senderEmail,
-                            receverEmail, text)
-        record = optData.objects.all().filter(email=receverEmail).first()
+        mail(sender='star.union.team.2023@gmail.com',
+             recever=request.POST.get('email'),
+             subject='Star Union OTP For Registration',
+             body=otpMailTemplate(otp, "https://starunion.pythonanywhere.com/main/getImage/?path=star_union/assets/logo.png").getTemplate()).send_mail()
+
+        # will here attach the logo after we deploy the server
+        record = optData.objects.all().filter(email=request.POST.get('email')).first()
         if record != None:
             record.otp = otp
             record.save()
         else:
             newRecord = optData()
-            newRecord.email = receverEmail
+            newRecord.email = request.POST.get('email')
             newRecord.otp = otp
             newRecord.initTime = timezone.now()
             newRecord.save()
@@ -355,7 +397,7 @@ class imageHandeller (DefaultAPIView):
         self.refreshResponseDate()
         blocked_images = []
         path = request.GET.get('path')
-        print(path )
+        print(path)
         if (path == '' or path == None):
             return HttpResponse('')
         else:

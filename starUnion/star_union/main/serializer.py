@@ -96,7 +96,7 @@ class userUpdateSerializer (serializers.Serializer):
         instance.collage = validated_data.get('collage')
         instance.level = validated_data.get('level')
         instance.photo = user_profile_images.objects.all().filter(
-            photo_contains=validated_data['photo']).first()
+            photo__contains=validated_data['photo']).first()
         instance.save()
         return {
             'message': 'Done',
