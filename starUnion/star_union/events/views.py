@@ -121,25 +121,30 @@ class registerForEvent (DefaultAPIView):
             ser = specialEventRegisterSerializer(
                 data=json.loads(request.data['data']))
             if ser.is_valid():
-                ser.save(event_name)
-                self.responseData['message'] = 'Done'
+                if ser.save(event_name)['message'].lower() == 'done' :
+                    self.responseData['message'] = 'Done'
+                    logo_to_send = None
+                    if special_event.logo.name != None and special_event.logo.name != "":
+                        logo_to_send = special_event.logo.path
+                    self.make_qr(
+                        ser.validated_data['email'], logo_to_send)
 
-                self.make_qr(
-                    ser.validated_data['email'], special_event.logo.path)
-                
-                mail_with_image(
-                    sender='star.union.team.2023@gmail.com',
-                    recever=ser.validated_data['email'],
-                    subject=f'{special_event.name} Qr For Registration',
-                    body=qrMailTemplateForEvent(
-                        event=special_event.name,
-                    ).getTemplate(),
-                    images=[str(settings.BASE_DIR / 'events' /
-                                'qr_codes' / f'{ser.validated_data["email"]}.png')]
-                ).send_mail()
+                    mail_with_image(
+                        sender='esla889900@gmail.com',
+                        sender_password='erls gvry oilr dtqy',
+                        recever=ser.validated_data['email'],
+                        subject=f'{special_event.name} Qr For Registration',
+                        body=qrMailTemplateForEvent(
+                            event=special_event.name,
+                        ).getTemplate(),
+                        images=[str(settings.BASE_DIR / 'events' /
+                                    'qr_codes' / f'{ser.validated_data["email"]}.png')]
+                    ).send_mail()
 
-                os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
-                          f'{ser.validated_data["email"]}.png')
+                    os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
+                            f'{ser.validated_data["email"]}.png')
+                else :
+                    self.responseData['message'] = 'You are already registered in this event'
 
         return JsonResponse(self.responseData, safe=False)
 

@@ -98,11 +98,12 @@ class qr_code:
             error_correction=qrcode.constants.ERROR_CORRECT_H, border=2)
         qr.add_data(self.data)
         qr.make(fit=True)
-        self.add_gradient_background(f'{self.logo}', f'{self.logo}_temp.png' , (0, 0, 0), (94, 56, 199), 'vertical' , lambda x : x**1.7)
-        im = Image.open(f'{self.logo}_temp.png')
-        if self.logo_rounded:
-            im = self.add_corners(im, 100)
-        im.save(f'{self.logo}_temp.png')
+        if self.logo is not None:
+            self.add_gradient_background(f'{self.logo}', f'{self.logo}_temp.png' , (0, 0, 0), (94, 56, 199), 'vertical' , lambda x : x**1.7)
+            im = Image.open(f'{self.logo}_temp.png')
+            if self.logo_rounded:
+                im = self.add_corners(im, 100)
+            im.save(f'{self.logo}_temp.png')
         qr_inner_eyes_img = qr.make_image(image_factory=StyledPilImage,
                                           eye_drawer=RoundedModuleDrawer(
                                               radius_ratio=1),
@@ -112,10 +113,15 @@ class qr_code:
                                           eye_drawer=RoundedModuleDrawer(
                                               radius_ratio=1),
                                           color_mask=SolidFillColorMask(front_color=self.outer_eye_color))
-
-        qr_img = qr.make_image(image_factory=StyledPilImage,
-                               module_drawer=RoundedModuleDrawer(),
-                               embeded_image_path=f'{self.logo}_temp.png')
+        qr_img = None
+        if self.logo is not None:
+            qr_img = qr.make_image(image_factory=StyledPilImage,
+                                module_drawer=RoundedModuleDrawer(),
+                                embeded_image_path=f'{self.logo}_temp.png')
+            os.remove(f'{self.logo}_temp.png')
+        else :
+            qr_img = qr.make_image(image_factory=StyledPilImage,
+                                module_drawer=RoundedModuleDrawer())
 
         inner_eye_mask = self.style_inner_eyes(qr_img)
         outer_eye_mask = self.style_outer_eyes(qr_img)
@@ -125,8 +131,7 @@ class qr_code:
             qr_outer_eyes_img, intermediate_img, outer_eye_mask)
 
 
-        os.remove(f'{self.logo}_temp.png')
-
+        
         return final_image
         final_image.save('qrcode.png')
         # finally delete the temp image

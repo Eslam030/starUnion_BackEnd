@@ -38,6 +38,7 @@ class anonymous_user (models.Model):
 
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
+    email = models.EmailField(default="")
     phone = models.CharField(max_length=20)
     university = models.CharField(max_length=50)
     collage = models.CharField(max_length=50)
