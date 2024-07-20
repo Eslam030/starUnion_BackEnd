@@ -188,11 +188,11 @@ class updateToken (AuthenticationAPIView):
 
 
 class mail:
-    def __init__(self, sender, recever, subject, body , sender_password):
+    def __init__(self, sender, recever, subject, body, sender_password):
         self.sender = sender
         self.recever = recever
         self.subject = subject
-        self.body = body 
+        self.body = body
         self.sender_password = sender_password
         self.message = None
 
@@ -214,11 +214,11 @@ class mail:
 
 
 class mail_with_image (mail):
-    def __init__(self, sender, recever, subject, body, images , sender_password):
-        super().__init__(sender, recever, subject, body , sender_password)
+    def __init__(self, sender, recever, subject, body, images, sender_password):
+        super().__init__(sender, recever, subject, body, sender_password)
         self.images = images
 
-    def add_images (self):
+    def add_images(self):
         count = 1
         for image in self.images:
             with open(image, 'rb') as f:
@@ -227,11 +227,10 @@ class mail_with_image (mail):
                 mail_image.add_header('Content-ID', f'<image{count}>')
                 self.message.attach(mail_image)
                 count += 1
-                
+
     def prepare_mail(self):
         super().prepare_mail()
         self.add_images()
-
 
 
 class otp (DefaultAPIView):
@@ -326,6 +325,7 @@ class upgrade (AuthenticationAPIView):
 class updateData (AuthenticationAPIView):
     # using user serlializer and form submited
     # will be handeled later
+    
     def dataChecker(self, data):
         if data.get('password') != None or data.get('username') != None or data.get('email') != None:
             return False
@@ -341,6 +341,7 @@ class updateData (AuthenticationAPIView):
             if ser.is_valid():
                 response = ser.update(self.user, ser.validated_data)
                 self.responseData['message'] = response['message']
+                self.responseData['user'] = response['user']
             else:
                 self.responseData['message'] = 'Not valid data'
         return JsonResponse(self.responseData, safe=False)
