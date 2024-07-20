@@ -2,7 +2,28 @@ import subprocess
 import os
 from pathlib import Path
 import shutil
+import sys
+
+
+base_path = Path(__file__).resolve().parent.parent / 'star_union'
+base_path = str(base_path).replace('\\', '\\\\')
+
+wanted_to_move_from_main = [
+    'Male.png',
+    'Female.png',
+    'Baby_Male.png',
+    'Baby_Female.png',
+    'Profile Avatar.png'
+]
 # Define the list of management commands to run
+
+def handle_photos_files():
+    root = base_path + '/main/User_profile_images'
+    if os.path.exists(root) :
+        for file in os.listdir(root):
+            if file in wanted_to_move_from_main:
+                shutil.move(root + '/' + file, base_path + '/star_union/assets' )
+        shutil.rmtree(root, ignore_errors=True)
 
 
 def migrations():
@@ -61,12 +82,14 @@ def deleteMigrations(directory):
             deleteMigrations(directory + "\\" + folder)
 
 
-base_path = Path(__file__).resolve().parent.parent / 'star_union'
-base_path = str(base_path).replace('\\', '\\\\')
-# put your django project
-deleteMigrations(base_path)
 
-# # put your django env path
-deleteMigrations('C:\\Users\\aba\\Downloads\\env\\Lib\\site-packages\\django')
+if (len(sys.argv) > 1):
+    if sys.argv[1].lower() == 'production' :
+        handle_photos_files()
+        deleteMigrations(base_path)
+else :
+    deleteMigrations(base_path)
+    # # put your django env path
+    deleteMigrations('C:\\Users\\aba\\Downloads\\env\\Lib\\site-packages\\django')
+    migrations()
 
-#migrations()
