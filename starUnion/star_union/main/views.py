@@ -188,54 +188,50 @@ class updateToken (AuthenticationAPIView):
 
 
 class mail:
-    def __init__(self, sender, recever, subject, body):
+    def __init__(self, sender, recever, subject, body , sender_password):
         self.sender = sender
         self.recever = recever
         self.subject = subject
-        self.body = body
+        self.body = body 
+        self.sender_password = sender_password
+        self.message = None
 
     def prepare_mail(self):
-        message = MIMEMultipart()
-        message["From"] = self.sender
-        message["To"] = self.recever
-        message["Subject"] = self.subject
-        message.attach(MIMEText(self.body, "html"))
-        return message
+        self.message = MIMEMultipart()
+        self.message["From"] = self.sender
+        self.message["To"] = self.recever
+        self.message["Subject"] = self.subject
+        self.message.attach(MIMEText(self.body, "html"))
 
     def send_mail(self):
-        message = self.prepare_mail()
+        self.prepare_mail()
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()
-            server.login(self.sender, "adzf fxju htsg bxyu")
-            text = message.as_string()
+            server.login(self.sender, self.sender_password)
+            text = self.message.as_string()
             server.sendmail(self.sender,
                             self.recever, text)
 
 
 class mail_with_image (mail):
-    def __init__(self, sender, recever, subject, body, images):
-        super().__init__(sender, recever, subject, body)
+    def __init__(self, sender, recever, subject, body, images , sender_password):
+        super().__init__(sender, recever, subject, body , sender_password)
         self.images = images
 
-    def add_images (self, message):
+    def add_images (self):
         count = 1
         for image in self.images:
             with open(image, 'rb') as f:
                 image = f.read()
                 mail_image = MIMEImage(image)
                 mail_image.add_header('Content-ID', f'<image{count}>')
-                message.attach(mail_image)
+                self.message.attach(mail_image)
                 count += 1
-        return message
-    def send_mail(self):
-        message = self.prepare_mail()
-        message = self.add_images(message)
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()
-            server.login(self.sender, "adzf fxju htsg bxyu")
-            text = message.as_string()
-            server.sendmail(self.sender,
-                            self.recever, text)
+                
+    def prepare_mail(self):
+        super().prepare_mail()
+        self.add_images()
+
 
 
 class otp (DefaultAPIView):
