@@ -325,7 +325,7 @@ class upgrade (AuthenticationAPIView):
 class updateData (AuthenticationAPIView):
     # using user serlializer and form submited
     # will be handeled later
-    
+
     def dataChecker(self, data):
         if data.get('password') != None or data.get('username') != None or data.get('email') != None:
             return False
@@ -341,7 +341,7 @@ class updateData (AuthenticationAPIView):
             if ser.is_valid():
                 response = ser.update(self.user, ser.validated_data)
                 self.responseData['message'] = response['message']
-                self.responseData['user'] = response['user']
+                self.responseData['user'] = userHandeler().create_user(response['user'])
             else:
                 self.responseData['message'] = 'Not valid data'
         return JsonResponse(self.responseData, safe=False)
@@ -407,6 +407,19 @@ class imageHandeller (DefaultAPIView):
 
 
 class userHandeler (DefaultAPIView):
+    def create_user(self, userData):
+        return {
+            'first_name': userData.user.first_name,
+            'last_name': userData.user.last_name,
+            'email': userData.user.email,
+            'phone': userData.phone,
+            'university': userData.university,
+            'collage': userData.collage,
+            'level': userData.level,
+            'photo': userData.photo.photo.name,
+            'gender': userData.gen,
+        }
+
     def get(self, request):
         self.refreshResponseDate()
         username = request.GET.get('username')
@@ -414,17 +427,7 @@ class userHandeler (DefaultAPIView):
         userData = user.objects.all().filter(user=basicUser).first()
         if userData != None:
             crewData = crew.objects.all().filter(member=userData).first()
-            userDict = {
-                'first_name': userData.user.first_name,
-                'last_name': userData.user.last_name,
-                'email': userData.user.email,
-                'phone': userData.phone,
-                'university': userData.university,
-                'collage': userData.collage,
-                'level': userData.level,
-                'photo': userData.photo.photo.name,
-                'gender': userData.gen,
-            }
+            userDict = self.create_user(userData)
             if crewData != None:
                 userDict['position'] = crewData.role
                 userDict['rate'] = crewData.rate
