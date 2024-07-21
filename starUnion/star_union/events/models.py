@@ -61,6 +61,7 @@ class special_events (events):
         verbose_name = 'Special Event'
         verbose_name_plural = 'Special Events'
     company = models.ForeignKey(company, on_delete=models.CASCADE)
+    form_photo = models.ImageField(blank=True , max_length=500 , default='')
 
     def __str__(self) -> str:
         return self.name + " __ " + self.company.name
