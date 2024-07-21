@@ -63,7 +63,9 @@ class events (DefaultAPIView):
                 jsonEventData[i]['special'] = True
                 special_event = special_events.filter(name=jsonEventData[i]['pk']).first()
                 jsonEventData[i]['company'] = special_event.company.name
-                jsonEventData[i]['form_logo'] = special_event.form_photo.path
+                if special_event.form_photo.name != None and special_event.form_photo.name != "":
+                    jsonEventData[i]['form_logo'] = special_event.form_photo.path
+        
 
         self.responseData['data'] = jsonEventData
         self.responseData['message'] = 'Done'
