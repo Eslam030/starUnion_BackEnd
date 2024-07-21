@@ -90,6 +90,8 @@ def handle_logo_routing(sender, instance, **kwargs):
 
 
 models_with_logos = [events, sponsors, partnrships, company, special_events]
+
+
 @receiver(post_save)
 def handle_logo_routing(sender, instance, **kwargs):
     if sender in models_with_logos:
@@ -99,11 +101,11 @@ def handle_logo_routing(sender, instance, **kwargs):
                     if os.path.exists(logo[0]):
                         os.remove(logo[0])
             name_for_path = sender.__name__[0].upper() + sender.__name__[1:-1]
-            if sender == company :
+            if sender == company:
                 name_for_path = "Company"
-            if sender == special_events: 
+            if sender == special_events:
                 name_for_path = "Event"
-                
+
             new_path = settings.BASE_DIR / \
                 ("events/Every" + name_for_path +
                  "Data/" + instance.name + "/logos/")
@@ -116,6 +118,38 @@ def handle_logo_routing(sender, instance, **kwargs):
             if not os.path.samefile(instance.logo.path, new_path):
                 os.remove(instance.logo.path)
                 instance.logo = str(new_path)
+                instance.save()
+        else:
+            if len(logo) > 0:
+                for logo_name in logo:
+                    if os.path.exists(logo_name):
+                        os.remove(logo_name)
+        logo.clear()
+
+
+@receiver(post_save)
+def handle_logo_routing(sender, instance, **kwargs):
+    if sender == special_events:
+        if instance.form_photo.name != None and instance.form_photo.name != "":
+            if len(logo) > 0:
+                if logo[0] != instance.form_photo.path:
+                    if os.path.exists(logo[0]):
+                        os.remove(logo[0])
+
+            name_for_path = "Event"
+
+            new_path = settings.BASE_DIR / \
+                ("events/Every" + name_for_path +
+                 "Data/" + instance.name + "/form_logo/")
+            if not os.path.exists(new_path):
+                os.makedirs(new_path)
+            logo_path = str(instance.form_photo.path).replace("/", "\\")
+            new_path = new_path / logo_path.split("\\")[-1]
+            if not os.path.exists(new_path):
+                shutil.copyfile(instance.form_photo.path, new_path)
+            if not os.path.samefile(instance.form_photo.path, new_path):
+                os.remove(instance.form_photo.path)
+                instance.form_photo = str(new_path)
                 instance.save()
         else:
             if len(logo) > 0:
