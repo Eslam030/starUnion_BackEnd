@@ -149,10 +149,10 @@ class registerForEvent (DefaultAPIView):
                         name=special_event.company.name).first()
                     
                     mail_with_image(
-                        sender='esla889900@gmail.com',
-                        sender_password='erls gvry oilr dtqy',
+                        sender='star.union.team.2023@gmail.com',
+                        sender_password='adzf fxju htsg bxyu',
                         recever=ser.validated_data['email'],
-                        subject=f'{special_event.name} Qr For Registration',
+                        subject=f'Congrats For Registering {special_event.name} ',
                         body=dotPy_Registartion_mail(
                         ).getTemplate(),
                         images=[company.logo.path]

@@ -247,6 +247,7 @@ class otp (DefaultAPIView):
         otp = totp.now()
 
         mail(sender='star.union.team.2023@gmail.com',
+             sender_password='adzf fxju htsg bxyu' , 
              recever=request.POST.get('email'),
              subject='Star Union OTP For Registration',
              body=otpMailTemplate(otp, "https://starunion.pythonanywhere.com/main/getImage/?path=star_union/assets/logo.png").getTemplate()).send_mail()
