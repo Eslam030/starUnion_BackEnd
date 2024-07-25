@@ -63,21 +63,35 @@ class qrMailTemplateForEvent:
         """
 
 
-class basicMailTemplate :
-    def __init__(self , message) :
-        self.message = message 
-    def getTemplate (self) :
+class dotPy_Registartion_mail:
+    def __init__(self):
+        pass
+
+    def getTemplate(self):
         return f"""
-            <html>
-                <head>
-                    <title>Qr for attending {self.message}</title>
-                </head>
-                <body style="font-family: Arial, sans-serif; ">
-                    <center>
-                        <div style="text-align: center; color : rgba(97, 56, 209, 1)">
-                            <p >{self.message}</p>
-                        </div>
-                    </center>
-                </body>
-            </html>
+                <html>
+                    <head>
+                        
+                    </head>
+                    <body style="font-family: Arial, sans-serif; ">
+                        <center>
+                            <img src="cid:image1" alt="Your Logo" style="max-width: 13vw; border-radius:50%;
+                            max-height : 25vh" >
+                            <p style="text-align: center;">
+                                <span style="font-weight: bold;">Congratulations! 🎉</span>
+                                <br>
+                                You’ve successfully registered for AI Catalyst '24! 
+                                We’re thrilled to have you join us on this exciting
+                                journey into the world of AI. Get ready for insightful 
+                                sessions, hands-on workshops, and networking opportunities 
+                                with industry leaders. Stay tuned for more updates, and we 
+                                can’t wait to see you there! 🚀
+                                <br>
+                            </p>
+                            <p>
+                                #AICatalyst #ArtificialIntelligence #AI #TechEvent #DotPy
+                            </p>
+                        </center>
+                    </body>
+                </html>
         """

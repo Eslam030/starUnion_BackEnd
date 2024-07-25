@@ -37,7 +37,6 @@ class specialEventRegisterSerializer (serializers.Serializer):
             return {
                 'message': 'You are already registered in this event'
             }
-        print(self.validated_data)
         user = anonymous_user.objects.create(
             first_name=self.validated_data['first_name'],
             last_name=self.validated_data['last_name'],

@@ -145,4 +145,26 @@ class qr_code:
 
 
 
+# how to send QR code 
 
+
+# logo_to_send = None
+# if special_event.logo.name != None and special_event.logo.name != "":
+#     logo_to_send = special_event.logo.path
+# self.make_qr(
+#     ser.validated_data['email'], logo_to_send)
+
+# mail_with_image(
+#     sender='esla889900@gmail.com',
+#     sender_password='erls gvry oilr dtqy',
+#     recever=ser.validated_data['email'],
+#     subject=f'{special_event.name} Qr For Registration',
+#     body=qrMailTemplateForEvent(
+#         event=special_event.name,
+#     ).getTemplate(),
+#     images=[str(settings.BASE_DIR / 'events' /
+#                 'qr_codes' / f'{ser.validated_data["email"]}.png')]
+# ).send_mail()
+
+# os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
+#           f'{ser.validated_data["email"]}.png')
