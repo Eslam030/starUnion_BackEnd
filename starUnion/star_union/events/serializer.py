@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from main.models import anonymous_user
-from events.models import special_events_data , special_events
+from events.models import special_events_data, special_events
 from main.serializer import gender_creator
 
 # will be implemented in the upcoming versions
@@ -19,21 +19,25 @@ class eventSerializer (serializers.Serializer):
 class specialEventRegisterSerializer (serializers.Serializer):
     # will handle all things about the special events
     # images names any related data
-    first_name = serializers.CharField(max_length=50)
-    last_name = serializers.CharField(max_length=50)
-    email = serializers.EmailField()
-    phone = serializers.CharField(max_length=20)
-    university = serializers.CharField(max_length=50)
-    collage = serializers.CharField(max_length=50)
-    level = serializers.IntegerField()
-    gender = serializers.CharField(max_length=5)
 
-    def save (self ,  event_name , *args , **kwargs ):
-        event_data = special_events_data.objects.all().filter(event__name=event_name , user__email=self.validated_data['email']).first()
+    # make the filed nullable
+    first_name = serializers.CharField(max_length=50, allow_null=True)
+    last_name = serializers.CharField(max_length=50, allow_null=True)
+    email = serializers.EmailField(allow_null=True)
+    phone = serializers.CharField(max_length=20, allow_null=True)
+    university = serializers.CharField(max_length=50, allow_null=True)
+    collage = serializers.CharField(max_length=50, allow_null=True)
+    level = serializers.IntegerField(allow_null=True)
+    gender = serializers.CharField(max_length=5, allow_null=True)
+
+    def save(self,  event_name, *args, **kwargs):
+        event_data = special_events_data.objects.all().filter(
+            event__name=event_name, user__email=self.validated_data['email']).first()
         if event_data is not None:
             return {
-                'message' : 'You are already registered in this event'
+                'message': 'You are already registered in this event'
             }
+        print(self.validated_data)
         user = anonymous_user.objects.create(
             first_name=self.validated_data['first_name'],
             last_name=self.validated_data['last_name'],
@@ -50,6 +54,5 @@ class specialEventRegisterSerializer (serializers.Serializer):
             user=user
         )
         return {
-            'message' : 'Done'
+            'message': 'Done'
         }
-        
