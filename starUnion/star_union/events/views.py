@@ -112,9 +112,8 @@ class registerForEvent (DefaultAPIView):
             settings.BASE_DIR / 'events' / 'qr_codes' / f'{mail}.png'
         )
 
-    def handle_request_for_special_event(self, data):
+    def handle_form_for_special_event(self, data):
         # handle if there any fields empty to be empty
-
         anonymous_user_waanted_data = list(models.anonymous_user.__dict__)
         for i in range(7, len(anonymous_user_waanted_data)):
             if i > 14:
@@ -129,7 +128,7 @@ class registerForEvent (DefaultAPIView):
         if data['level'].lower() == 'graduate' :
             data['level'] = 8
 
-    def regirst_special_event(self, request):
+    def register_special_event(self, request):
         # here will make the logic or registering user with special event
         # using the event id and user id
         self.refreshResponseDate()
@@ -140,34 +139,34 @@ class registerForEvent (DefaultAPIView):
             self.responseData['message'] = 'Not valid event name'
         else:
             form_data = json.loads(request.data['data'])
-            self.handle_request_for_special_event(form_data)
+            self.handle_form_for_special_event(form_data)
             print(form_data)
             ser = specialEventRegisterSerializer(
                 data=form_data)
             if ser.is_valid():
-                print('Test')
                 if ser.save(event_name)['message'].lower() == 'done':
-                    self.responseData['message'] = 'Done'
-                    logo_to_send = None
-                    if special_event.logo.name != None and special_event.logo.name != "":
-                        logo_to_send = special_event.logo.path
-                    self.make_qr(
-                        ser.validated_data['email'], logo_to_send)
+                    pass
+                    # self.responseData['message'] = 'Done'
+                    # logo_to_send = None
+                    # if special_event.logo.name != None and special_event.logo.name != "":
+                    #     logo_to_send = special_event.logo.path
+                    # self.make_qr(
+                    #     ser.validated_data['email'], logo_to_send)
 
-                    mail_with_image(
-                        sender='esla889900@gmail.com',
-                        sender_password='erls gvry oilr dtqy',
-                        recever=ser.validated_data['email'],
-                        subject=f'{special_event.name} Qr For Registration',
-                        body=qrMailTemplateForEvent(
-                            event=special_event.name,
-                        ).getTemplate(),
-                        images=[str(settings.BASE_DIR / 'events' /
-                                    'qr_codes' / f'{ser.validated_data["email"]}.png')]
-                    ).send_mail()
+                    # mail_with_image(
+                    #     sender='esla889900@gmail.com',
+                    #     sender_password='erls gvry oilr dtqy',
+                    #     recever=ser.validated_data['email'],
+                    #     subject=f'{special_event.name} Qr For Registration',
+                    #     body=qrMailTemplateForEvent(
+                    #         event=special_event.name,
+                    #     ).getTemplate(),
+                    #     images=[str(settings.BASE_DIR / 'events' /
+                    #                 'qr_codes' / f'{ser.validated_data["email"]}.png')]
+                    # ).send_mail()
 
-                    os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
-                              f'{ser.validated_data["email"]}.png')
+                    # os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
+                    #           f'{ser.validated_data["email"]}.png')
                 else:
                     self.responseData['message'] = 'You are already registered in this event'
 
@@ -221,7 +220,7 @@ class registerForEvent (DefaultAPIView):
         self.refreshResponseDate()
         spcial = request.POST.get('special')
         if spcial == 'true':
-            return self.regirst_special_event(request)
+            return self.register_special_event(request)
         else:
             return self.register_normal_event(request)
 

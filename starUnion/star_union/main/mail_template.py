@@ -61,3 +61,23 @@ class qrMailTemplateForEvent:
                 </body>
             </html>
         """
+
+
+class basicMailTemplate :
+    def __init__(self , message) :
+        self.message = message 
+    def getTemplate (self) :
+        return f"""
+            <html>
+                <head>
+                    <title>Qr for attending {self.message}</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; ">
+                    <center>
+                        <div style="text-align: center; color : rgba(97, 56, 209, 1)">
+                            <p >{self.message}</p>
+                        </div>
+                    </center>
+                </body>
+            </html>
+        """
