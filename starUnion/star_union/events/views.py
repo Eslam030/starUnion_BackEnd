@@ -9,7 +9,7 @@ from django.http import HttpResponseForbidden
 from django.contrib.auth.models import User
 from .QrCode import qr_code
 from main.views import mail_with_image
-from main.mail_template import qrMailTemplateForEvent
+from main.mail_template import dotPy_Registartion_mail
 from django.conf import settings
 import os
 
@@ -121,11 +121,11 @@ class registerForEvent (DefaultAPIView):
             if anonymous_user_waanted_data[i] == 'gen':
                 anonymous_user_waanted_data[i] = 'gender'
             if anonymous_user_waanted_data[i] not in data:
-                if anonymous_user_waanted_data[i] == 'level' :
+                if anonymous_user_waanted_data[i] == 'level':
                     data[anonymous_user_waanted_data[i]] = 0
                     continue
                 data[anonymous_user_waanted_data[i]] = None
-        if data['level'].lower() == 'graduate' :
+        if data['level'].lower() == 'graduate':
             data['level'] = 8
 
     def register_special_event(self, request):
@@ -140,33 +140,23 @@ class registerForEvent (DefaultAPIView):
         else:
             form_data = json.loads(request.data['data'])
             self.handle_form_for_special_event(form_data)
-            print(form_data)
             ser = specialEventRegisterSerializer(
                 data=form_data)
             if ser.is_valid():
                 if ser.save(event_name)['message'].lower() == 'done':
-                    pass
-                    # self.responseData['message'] = 'Done'
-                    # logo_to_send = None
-                    # if special_event.logo.name != None and special_event.logo.name != "":
-                    #     logo_to_send = special_event.logo.path
-                    # self.make_qr(
-                    #     ser.validated_data['email'], logo_to_send)
-
-                    # mail_with_image(
-                    #     sender='esla889900@gmail.com',
-                    #     sender_password='erls gvry oilr dtqy',
-                    #     recever=ser.validated_data['email'],
-                    #     subject=f'{special_event.name} Qr For Registration',
-                    #     body=qrMailTemplateForEvent(
-                    #         event=special_event.name,
-                    #     ).getTemplate(),
-                    #     images=[str(settings.BASE_DIR / 'events' /
-                    #                 'qr_codes' / f'{ser.validated_data["email"]}.png')]
-                    # ).send_mail()
-
-                    # os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
-                    #           f'{ser.validated_data["email"]}.png')
+                    self.responseData['message'] = 'Done'
+                    company = models.company.objects.filter(
+                        name=special_event.company.name).first()
+                    
+                    mail_with_image(
+                        sender='esla889900@gmail.com',
+                        sender_password='erls gvry oilr dtqy',
+                        recever=ser.validated_data['email'],
+                        subject=f'{special_event.name} Qr For Registration',
+                        body=dotPy_Registartion_mail(
+                        ).getTemplate(),
+                        images=[company.logo.path]
+                    ).send_mail()
                 else:
                     self.responseData['message'] = 'You are already registered in this event'
 
