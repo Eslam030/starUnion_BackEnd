@@ -61,11 +61,11 @@ class events (DefaultAPIView):
         for i in range(len(jsonEventData)):
             if special_events.filter(name=jsonEventData[i]['pk']).first() != None:
                 jsonEventData[i]['special'] = True
-                special_event = special_events.filter(name=jsonEventData[i]['pk']).first()
+                special_event = special_events.filter(
+                    name=jsonEventData[i]['pk']).first()
                 jsonEventData[i]['company'] = special_event.company.name
                 if special_event.form_photo.name != None and special_event.form_photo.name != "":
                     jsonEventData[i]['form_logo'] = special_event.form_photo.path
-        
 
         self.responseData['data'] = jsonEventData
         self.responseData['message'] = 'Done'
@@ -112,19 +112,41 @@ class registerForEvent (DefaultAPIView):
             settings.BASE_DIR / 'events' / 'qr_codes' / f'{mail}.png'
         )
 
+    def handle_request_for_special_event(self, data):
+        # handle if there any fields empty to be empty
+
+        anonymous_user_waanted_data = list(models.anonymous_user.__dict__)
+        for i in range(7, len(anonymous_user_waanted_data)):
+            if i > 14:
+                break
+            if anonymous_user_waanted_data[i] == 'gen':
+                anonymous_user_waanted_data[i] = 'gender'
+            if anonymous_user_waanted_data[i] not in data:
+                if anonymous_user_waanted_data[i] == 'level' :
+                    data[anonymous_user_waanted_data[i]] = 0
+                    continue
+                data[anonymous_user_waanted_data[i]] = None
+        if data['level'].lower() == 'graduate' :
+            data['level'] = 8
+
     def regirst_special_event(self, request):
         # here will make the logic or registering user with special event
         # using the event id and user id
         self.refreshResponseDate()
         event_name = request.POST.get('event')
         special_event = models.special_events.objects.all().filter(name=event_name).first()
+
         if special_event == None:
             self.responseData['message'] = 'Not valid event name'
         else:
+            form_data = json.loads(request.data['data'])
+            self.handle_request_for_special_event(form_data)
+            print(form_data)
             ser = specialEventRegisterSerializer(
-                data=json.loads(request.data['data']))
+                data=form_data)
             if ser.is_valid():
-                if ser.save(event_name)['message'].lower() == 'done' :
+                print('Test')
+                if ser.save(event_name)['message'].lower() == 'done':
                     self.responseData['message'] = 'Done'
                     logo_to_send = None
                     if special_event.logo.name != None and special_event.logo.name != "":
@@ -145,8 +167,8 @@ class registerForEvent (DefaultAPIView):
                     ).send_mail()
 
                     os.remove(settings.BASE_DIR / 'events' / 'qr_codes' /
-                            f'{ser.validated_data["email"]}.png')
-                else :
+                              f'{ser.validated_data["email"]}.png')
+                else:
                     self.responseData['message'] = 'You are already registered in this event'
 
         return JsonResponse(self.responseData, safe=False)

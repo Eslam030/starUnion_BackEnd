@@ -36,14 +36,14 @@ class anonymous_user (models.Model):
         male = "M"
         female = "F"
 
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50 , null=True , default='') 
+    last_name = models.CharField(max_length=50 , null=True , default='')
     email = models.EmailField(default="")
-    phone = models.CharField(max_length=20)
-    university = models.CharField(max_length=50)
-    collage = models.CharField(max_length=50)
+    phone = models.CharField(max_length=20 , null=True , default='')
+    university = models.CharField(max_length=50 , null=True , default='')
+    collage = models.CharField(max_length=50 , null=True , default='')
     level = models.IntegerField()
-    gen = models.CharField(choices=gender.choices, max_length=1)
+    gen = models.CharField(choices=gender.choices, max_length=1 , null=True , default='')
 
     def __str__(self) -> str:
         return self.first_name + " " + self.last_name
