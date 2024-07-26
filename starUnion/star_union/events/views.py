@@ -140,14 +140,16 @@ class registerForEvent (DefaultAPIView):
         else:
             form_data = json.loads(request.data['data'])
             self.handle_form_for_special_event(form_data)
+            print(form_data)
             ser = specialEventRegisterSerializer(
                 data=form_data)
             if ser.is_valid():
+                print('fuck')
                 if ser.save(event_name)['message'].lower() == 'done':
                     self.responseData['message'] = 'Done'
                     company = models.company.objects.filter(
                         name=special_event.company.name).first()
-                    
+
                     mail_with_image(
                         sender='star.union.team.2023@gmail.com',
                         sender_password='adzf fxju htsg bxyu',
