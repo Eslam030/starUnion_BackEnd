@@ -28,7 +28,7 @@ class specialEventRegisterSerializer (serializers.Serializer):
     university = serializers.CharField(max_length=50, allow_null=True)
     collage = serializers.CharField(max_length=50, allow_null=True)
     level = serializers.IntegerField(allow_null=True)
-    gender = serializers.CharField(max_length=5, allow_null=True)
+    gender = serializers.CharField(max_length=6, allow_null=True)
 
     def save(self,  event_name, *args, **kwargs):
         event_data = special_events_data.objects.all().filter(
